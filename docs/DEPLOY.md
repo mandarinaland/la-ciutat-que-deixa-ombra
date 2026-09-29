@@ -34,9 +34,5 @@ Variables configurades: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_K
 2. **Autenticació** — Supabase → Authentication:
    - *Sign In / Providers → Email*: desactiva **Allow new users to sign up**.
    - *URL Configuration*: Site URL `https://la-ciutat-que-deixa-ombra.vercel.app`; Redirect URLs `http://localhost:3000/**`.
-3. **Primer administrador** — Authentication → Users → *Add user* (email + contrasenya, *Auto Confirm*). Després, al SQL Editor:
-   ```sql
-   insert into public.admins (user_id, role)
-   select id, 'owner' from auth.users where email = 'EL-TEU-EMAIL';
-   ```
+3. ~~**Primer administrador**~~ — fet el 29/09/2026: `info@piath.cat` és `owner`. Nous administradors: afegir-los des de l'SQL Editor o (Fase 7) des de Configuració.
 4. **GitHub** — perquè `git push` desplegui sol: crea un repositori (privat) a GitHub, puja-hi aquest projecte i connecta'l a Vercel → Project → Settings → Git. A partir d'aquí, cada push a `main` = producció i cada branca = preview.
