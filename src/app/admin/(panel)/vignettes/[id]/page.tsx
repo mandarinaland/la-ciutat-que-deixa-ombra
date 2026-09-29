@@ -7,6 +7,9 @@ import { resolveMediaSources } from "@/lib/media/sources";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatVignetteNumber } from "@/lib/routing";
 import { VignetteEditor } from "@/components/admin/VignetteEditor";
+import { MediaSlot, type SlotMedia } from "@/components/admin/media/MediaSlot";
+import { getUploadLimits } from "@/lib/data/settings";
+import { ROLE_KIND, ROLE_LABEL, type MediaRole } from "@/lib/media/roles";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export const metadata: Metadata = { title: "Editor de vinyeta" };
@@ -29,15 +32,32 @@ export default async function VignetteEditorPage({ params }: Props) {
     supabase.from("works").select("slug, title").eq("id", vignette.work_id).single(),
   ]);
 
-  const main = pickMedia(vignette.media, "main_image");
-  const audio = pickMedia(vignette.media, "audio_piath");
-  const video = pickMedia(vignette.media, "video");
-  const sources = await resolveMediaSources([main, audio, video].filter((m) => m !== null), "admin");
-  const slot = (m: typeof main) => {
+  const SLOTS: MediaRole[] = ["main_image", "audio_piath", "ambient_audio", "video", "video_poster"];
+  const picked = SLOTS.map((role) => ({ role, media: pickMedia(vignette.media, role) }));
+  const [sources, limits] = await Promise.all([
+    resolveMediaSources(
+      picked.flatMap((p) => (p.media ? [p.media] : [])),
+      "admin",
+    ),
+    getUploadLimits(),
+  ]);
+  const slot = (m: (typeof picked)[number]["media"]): SlotMedia | null => {
     if (!m) return null;
     const src = sources.get(m.id);
     return { media: m, url: src?.url ?? null, stable: src?.kind === "file" ? src.stable !== false : true };
   };
+
+  const mediaPanel = picked.map(({ role, media: m }) => (
+    <MediaSlot
+      key={role}
+      title={ROLE_LABEL[role]}
+      kind={ROLE_KIND[role]}
+      required={role === "main_image"}
+      target={{ type: "vignette", vignetteId: vignette.id, role }}
+      current={slot(m)}
+      limits={limits}
+    />
+  ));
 
   const { media, ...plain } = vignette;
   void media;
@@ -79,9 +99,7 @@ export default async function VignetteEditorPage({ params }: Props) {
         vignette={plain}
         chapters={chapters.map((c) => ({ id: c.id, title: c.title }))}
         previewHref={`/admin/preview/${work?.slug}/${vignette.number}`}
-        mainImage={slot(main)}
-        audio={slot(audio)}
-        video={slot(video)}
+        mediaPanel={mediaPanel}
       />
     </section>
   );

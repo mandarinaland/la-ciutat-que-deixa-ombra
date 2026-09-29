@@ -10,7 +10,7 @@ L'estat del desplegament real (Supabase + Vercel) i els passos pendents són a [
 
 **Producció:** https://la-ciutat-que-deixa-ombra.vercel.app
 
-> **Estat:** Fases 1–6 completades (Next.js + Vercel, Supabase, autenticació, model de dades, tauler, CRUD d'obres, capítols i vinyetes). Els apartats marcats amb *(Fase N)* s'activen quan s'implementi aquella fase.
+> **Estat:** Fases 1–9 completades (Next.js + Vercel, Supabase, autenticació, model de dades, tauler, CRUD d'obres, capítols i vinyetes, mediateca, pujades d'imatge/àudio/vídeo, configuració i administradors). Els apartats marcats amb *(Fase N)* s'activen quan s'implementi aquella fase.
 
 ---
 

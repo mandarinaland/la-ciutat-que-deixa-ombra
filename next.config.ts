@@ -23,6 +23,14 @@ function supabaseImagePatterns(): RemotePattern[] {
   ];
 }
 
+/** Supabase local (CLI) viu a 127.0.0.1: només llavors deixem l'optimitzador llegir IPs locals. */
+function isLocalSupabase(): boolean {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!raw) return false;
+  const host = new URL(raw).hostname;
+  return host === "127.0.0.1" || host === "localhost";
+}
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -47,6 +55,7 @@ const nextConfig: NextConfig = {
     // Les URLs signades són estables durant la finestra de signatura (vegeu docs/ARCHITECTURE.md)
     minimumCacheTTL: 60 * 60 * 24 * 7,
     remotePatterns: supabaseImagePatterns(),
+    dangerouslyAllowLocalIP: isLocalSupabase(),
   },
 
   async headers() {

@@ -2,11 +2,13 @@ import type { Enums, Tables, Views } from "@/types/database";
 
 /** Camps de `media` que necessita qualsevol vista (mai tot el registre). */
 export const MEDIA_FIELDS =
-  "id, media_type, mime_type, width, height, duration, alt_text, provider, provider_asset_id, bucket, storage_path, public_url" as const;
+  "id, filename, size, media_type, mime_type, width, height, duration, alt_text, provider, provider_asset_id, bucket, storage_path, public_url" as const;
 
 export type MediaItem = Pick<
   Tables<"media">,
   | "id"
+  | "filename"
+  | "size"
   | "media_type"
   | "mime_type"
   | "width"

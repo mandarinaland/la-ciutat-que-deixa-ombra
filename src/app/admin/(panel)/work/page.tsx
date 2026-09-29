@@ -4,11 +4,27 @@ import { getCurrentAdmin } from "@/lib/auth/admin";
 import { selectWorkAction } from "@/lib/actions/work";
 import { CreateWorkForm, DeleteWorkForm, WorkForm } from "@/components/admin/WorkForms";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { MediaSlot } from "@/components/admin/media/MediaSlot";
+import { getUploadLimits } from "@/lib/data/settings";
+import { resolveMediaSources } from "@/lib/media/sources";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { MEDIA_FIELDS } from "@/lib/data/types";
 
 export const metadata: Metadata = { title: "Obra" };
 
 export default async function WorkAdminPage() {
-  const [works, current, admin] = await Promise.all([listWorks(), getCurrentWork(), getCurrentAdmin()]);
+  const [works, current, admin, limits] = await Promise.all([listWorks(), getCurrentWork(), getCurrentAdmin(), getUploadLimits()]);
+
+  // Portada de l'obra
+  let cover = null;
+  if (current?.cover_media_id) {
+    const supabase = await createSupabaseServerClient();
+    const { data: m } = await supabase.from("media").select(MEDIA_FIELDS).eq("id", current.cover_media_id).maybeSingle();
+    if (m) {
+      const src = (await resolveMediaSources([m], "admin")).get(m.id);
+      cover = { media: m, url: src?.url ?? null, stable: src?.kind === "file" ? src.stable !== false : true };
+    }
+  }
 
   return (
     <section className="flex flex-col gap-12">
@@ -17,7 +33,18 @@ export default async function WorkAdminPage() {
         <h1 className="text-3xl">{current?.title ?? "Cap obra"}</h1>
       </header>
 
-      {current ? <WorkForm key={current.id} work={current} /> : null}
+      {current ? (
+        <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-start">
+          <WorkForm key={current.id} work={current} />
+          <MediaSlot
+            title="Imatge de portada"
+            kind="image"
+            target={{ type: "cover", workId: current.id }}
+            current={cover}
+            limits={limits}
+          />
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-4">
         <h2 className="font-mono text-[11px] uppercase tracking-widest text-smoke">Totes les obres</h2>

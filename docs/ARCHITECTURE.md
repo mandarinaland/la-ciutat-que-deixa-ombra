@@ -207,7 +207,15 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 1. Client: tria/arrossega fitxer → validació local (tipus, mida) per donar feedback ràpid.
 2. Server Action `createUpload`: `requireAdmin()`, revalida tipus i mida contra `site_settings`, genera camí `images/2026/09/<uuid>.jpg` i una *signed upload URL*.
 3. Client puja directament a Supabase amb XHR → barra de progrés, botó de cancel·lar (`abort()`).
-4. Server Action `finalizeUpload`: comprova que l'objecte existeix i la mida real, llegeix dimensions/durada, crea la fila `media`.
+4. Server Action `finalizeUpload`: comprova que l'objecte existeix (`storage.info`) i la mida/tipus reals; si no quadren, esborra l'objecte. Crea la fila `media` amb les dimensions/durada llegides al navegador i, si hi ha destinació, la vincula (rol de vinyeta o portada).
+
+Detalls:
+- Codi: `lib/media/limits.ts` (tipus admesos, límits), `lib/actions/media.ts`, `components/admin/media/*` (`useUploads`, `Uploader`, `MediaSlot`, `MediaPicker`, `MediaCard`).
+- Rols únics (`main_image`, `audio_piath`, `video`, `video_poster`): vincular-ne un de nou substitueix l'anterior; el fitxer vell es queda a la mediateca.
+- Treure la foto principal d'una vinyeta publicada la torna a esborrany.
+- Eliminar de la mediateca només és possible si el fitxer no s'usa enlloc (ni vinyeta ni portada); s'esborra la fila i després l'objecte de Storage.
+- Els límits es desen a `site_settings.upload_limits` (MB) i mai poden superar el límit dur del bucket (25 MB imatges, 50 MB àudio i vídeo).
+- Administradors: només un *owner* pot donar o retirar accés (`/admin/settings`); cal que la persona ja tingui compte a Supabase Auth (Dashboard → Authentication → Add user). Requereix `SUPABASE_SERVICE_ROLE_KEY`.
 
 ---
 
@@ -230,9 +238,9 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 | 4 | Model Work/Chapter/Vignette/Media + capa `lib/data` | consultes tipades |
 | 5 | Dashboard amb estadístiques | comptadors reals |
 | 6 | CRUD d'obres, capítols i vinyetes + editor | crear/editar/publicar/eliminar (25 proves E2E) |
-| 7 | Mediateca (cerca, ús, eliminar, reutilitzar) | |
-| 8 | Pujada d'imatges (drag & drop, progrés, cancel·lar, substituir) | |
-| 9 | Àudio i vídeo (reproductor, abstracció de proveïdor) | |
+| 7 | Mediateca (cerca, ús, eliminar, reutilitzar) + configuració (límits, administradors) | fet (31 proves E2E) |
+| 8 | Pujada d'imatges (drag & drop, progrés, cancel·lar, substituir) + portada de l'obra | fet |
+| 9 | Àudio i vídeo (pujada, durada, veu de Piath, àudio ambient, vídeo + pòster) | fet a l'admin; reproductor públic a la Fase 12 |
 | 10 | Drag & drop de l'ordre → `reorder_vignettes` | |
 | 11 | Experiència pública: portada, capítols | |
 | 12 | Mode auca: lectura seqüencial, teclat, swipe, preload | |

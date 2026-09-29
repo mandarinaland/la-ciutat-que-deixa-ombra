@@ -1,25 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState, useRef } from "react";
 import type { ActionResult } from "@/lib/data/errors";
 import type { AdminVignette } from "@/lib/data/admin";
-import type { MediaItem } from "@/lib/data/types";
 import { deleteVignetteAction, saveVignetteAction } from "@/lib/actions/vignettes";
-import { formatDuration } from "@/lib/format";
 import { ConfirmSubmit, Field, FormFeedback, SubmitButton, StatusBadge, buttonClass, inputClass, labelClass, useActionForm } from "./ui";
 
 const idle: ActionResult = { ok: true };
-
-type MediaSlot = { media: MediaItem; url: string | null; stable?: boolean } | null;
 
 type Props = {
   vignette: Omit<AdminVignette, "media">;
   chapters: { id: string; title: string }[];
   previewHref: string;
-  mainImage: MediaSlot;
-  audio: MediaSlot;
-  video: MediaSlot;
+  /** Ranures multimèdia (fora del formulari: cada una té les seves accions). */
+  mediaPanel: React.ReactNode;
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -31,15 +25,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function PendingUpload({ what, phase }: { what: string; phase: number }) {
-  return (
-    <div className="border border-dashed border-line p-6 text-center font-mono text-xs text-smoke">
-      La pujada de {what} s&apos;activa a la Fase {phase}.
-    </div>
-  );
-}
-
-export function VignetteEditor({ vignette, chapters, previewHref, mainImage, audio, video }: Props) {
+export function VignetteEditor({ vignette, chapters, previewHref, mediaPanel }: Props) {
   const { state, onSubmit, pending, intent } = useActionForm(saveVignetteAction);
   const [delState, delAction] = useActionState(deleteVignetteAction, idle);
   const formRef = useRef<HTMLFormElement>(null);
@@ -49,7 +35,9 @@ export function VignetteEditor({ vignette, chapters, previewHref, mainImage, aud
   const btn = { pending, activeIntent: intent ?? "save" };
 
   return (
-    <div className="grid gap-8">
+    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-start">
+      <div className="grid gap-8">{mediaPanel}</div>
+      <div className="grid gap-8">
       <form
         ref={formRef}
         onSubmit={onSubmit}
@@ -64,68 +52,18 @@ export function VignetteEditor({ vignette, chapters, previewHref, mainImage, aud
       >
         <input type="hidden" name="id" value={vignette.id} />
 
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <Section title="Fotografia">
-            {mainImage?.url ? (
-              <figure className="grid gap-2">
-                <div
-                  className="relative w-full overflow-hidden bg-ink-soft"
-                  style={{ aspectRatio: `${mainImage.media.width ?? 3} / ${mainImage.media.height ?? 2}` }}
-                >
-                  <Image
-                    src={mainImage.url}
-                    alt={mainImage.media.alt_text ?? ""}
-                    fill
-                    sizes="(min-width: 1280px) 40vw, 90vw"
-                    quality={75}
-                    unoptimized={mainImage.stable === false}
-                    className="object-contain"
-                  />
-                </div>
-                <figcaption className="font-mono text-[11px] text-smoke">
-                  {mainImage.media.width}×{mainImage.media.height} · alt: {mainImage.media.alt_text || <span className="text-ember">falta</span>}
-                </figcaption>
-              </figure>
-            ) : (
-              <div className="flex aspect-[3/2] items-center justify-center border border-dashed border-line font-mono text-xs text-smoke">
-                Sense fotografia principal
-              </div>
-            )}
-            <PendingUpload what="fotografies" phase={8} />
-          </Section>
-
-          <Section title="Text de Piath">
-            <Field label="Text" name="piath_text" error={fe.piath_text}>
-              <textarea
-                id="piath_text"
-                name="piath_text"
-                rows={12}
-                defaultValue={vignette.piath_text ?? ""}
-                className={`${inputClass} font-serif text-xl leading-relaxed`}
-                placeholder="Una ciutat no té una cara. En té milers."
-              />
-            </Field>
-          </Section>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-2">
-          <Section title="Àudio de Piath">
-            {audio ? (
-              <p className="font-mono text-xs text-smoke">
-                {audio.media.mime_type} · {formatDuration(audio.media.duration)}
-              </p>
-            ) : null}
-            <PendingUpload what="l'àudio" phase={9} />
-          </Section>
-          <Section title="Vídeo">
-            {video ? (
-              <p className="font-mono text-xs text-smoke">
-                {video.media.mime_type} · {formatDuration(video.media.duration)}
-              </p>
-            ) : null}
-            <PendingUpload what="vídeo" phase={9} />
-          </Section>
-        </div>
+        <Section title="Text de Piath">
+          <Field label="Text" name="piath_text" error={fe.piath_text}>
+            <textarea
+              id="piath_text"
+              name="piath_text"
+              rows={10}
+              defaultValue={vignette.piath_text ?? ""}
+              className={`${inputClass} font-serif text-xl leading-relaxed`}
+              placeholder="Una ciutat no té una cara. En té milers."
+            />
+          </Field>
+        </Section>
 
         <Section title="Metadades">
           <div className="grid gap-6 md:grid-cols-2">
@@ -182,7 +120,7 @@ export function VignetteEditor({ vignette, chapters, previewHref, mainImage, aud
           )}
         </Section>
 
-        <div className="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center gap-3 border-t border-line bg-ink/95 px-6 py-4 backdrop-blur md:-mx-10 md:px-10">
+        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-3 border-t border-line bg-ink/95 py-4 backdrop-blur">
           <SubmitButton name="intent" value="save" pendingLabel="Desant…" {...btn}>
             Guardar
           </SubmitButton>
@@ -209,6 +147,7 @@ export function VignetteEditor({ vignette, chapters, previewHref, mainImage, aud
         <span className="font-mono text-[11px] text-smoke">Els fitxers es conserven a la mediateca.</span>
         <FormFeedback state={delState} />
       </form>
+      </div>
     </div>
   );
 }
