@@ -33,7 +33,11 @@ export default async function VignetteEditorPage({ params }: Props) {
   const audio = pickMedia(vignette.media, "audio_piath");
   const video = pickMedia(vignette.media, "video");
   const sources = await resolveMediaSources([main, audio, video].filter((m) => m !== null), "admin");
-  const slot = (m: typeof main) => (m ? { media: m, url: sources.get(m.id)?.url ?? null } : null);
+  const slot = (m: typeof main) => {
+    if (!m) return null;
+    const src = sources.get(m.id);
+    return { media: m, url: src?.url ?? null, stable: src?.kind === "file" ? src.stable !== false : true };
+  };
 
   const { media, ...plain } = vignette;
   void media;

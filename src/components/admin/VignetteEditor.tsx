@@ -11,7 +11,7 @@ import { ConfirmSubmit, Field, FormFeedback, SubmitButton, StatusBadge, buttonCl
 
 const idle: ActionResult = { ok: true };
 
-type MediaSlot = { media: MediaItem; url: string | null } | null;
+type MediaSlot = { media: MediaItem; url: string | null; stable?: boolean } | null;
 
 type Props = {
   vignette: Omit<AdminVignette, "media">;
@@ -78,6 +78,7 @@ export function VignetteEditor({ vignette, chapters, previewHref, mainImage, aud
                     fill
                     sizes="(min-width: 1280px) 40vw, 90vw"
                     quality={75}
+                    unoptimized={mainImage.stable === false}
                     className="object-contain"
                   />
                 </div>

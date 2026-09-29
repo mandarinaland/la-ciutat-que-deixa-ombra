@@ -14,7 +14,15 @@ export function Thumb({ media, source, size = 64 }: { media: MediaItem | null; s
   }
   return (
     <div style={box} className="relative shrink-0 overflow-hidden bg-ink-soft">
-      <Image src={source.url} alt={media.alt_text ?? ""} fill sizes={`${size}px`} quality={60} className="object-cover" />
+      <Image
+        src={source.url}
+        alt={media.alt_text ?? ""}
+        fill
+        sizes={`${size}px`}
+        quality={60}
+        unoptimized={source.stable === false}
+        className="object-cover"
+      />
     </div>
   );
 }

@@ -65,10 +65,10 @@ la-ciutat-que-deixa-ombra/
 ├── supabase/
 │   ├── config.toml              # Supabase CLI (local)
 │   ├── migrations/              # SQL versionat: la BD es reconstrueix d'aquí
-│   │   ├── 20260929000100_schema.sql
-│   │   ├── 20260929000200_security.sql   # esquema private, vistes, RLS, permisos
-│   │   ├── 20260929000300_storage.sql
-│   │   └── 20260929000400_initial_work.sql  # obra + 9 capítols (esborrany)
+│   │   ├── 20260929015505_schema.sql
+│   │   ├── 20260929015540_security.sql   # esquema private, vistes, RLS, permisos
+│   │   ├── 20260929015551_storage.sql
+│   │   └── 20260929015559_initial_work.sql  # obra + 9 capítols (esborrany)
 │   ├── tests/rls_smoke.sql      # 38 comprovacions de permisos (npm run db:test)
 │   └── seed.sql                 # només per a entorn local
 ├── src/

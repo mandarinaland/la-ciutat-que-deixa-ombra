@@ -10,7 +10,9 @@ import { createPublicClient } from "@/lib/supabase/public";
  * avui Supabase Storage; demà Mux o Cloudflare Stream per al vídeo, sense tocar-los.
  */
 export type MediaSource =
-  | { kind: "file"; url: string; mimeType: string } // imatge, àudio o vídeo progressiu (HTTP Range)
+  // imatge, àudio o vídeo progressiu (HTTP Range).
+  // `stable: false` → la URL canvia a cada petició: no s'ha de passar per l'optimitzador de next/image.
+  | { kind: "file"; url: string; mimeType: string; stable?: boolean }
   | { kind: "hls"; url: string; mimeType: "application/vnd.apple.mpegurl" }; // streaming adaptatiu
 
 type MediaLike = Pick<
@@ -92,6 +94,23 @@ const signAdminCached = unstable_cache(signAdmin, ["signed-media-urls-admin-v1"]
   tags: [MEDIA_URLS_TAG],
 });
 
+/**
+ * Alternativa si encara no s'ha configurat SUPABASE_SERVICE_ROLE_KEY:
+ * signa amb la sessió de l'admin (la RLS ho permet), URLs d'1 hora i sense cache.
+ * Funciona, però les miniatures no es poden optimitzar (la URL canvia cada vegada).
+ */
+async function signAdminWithSession(bucket: string, paths: string[]): Promise<Record<string, string>> {
+  const { createSupabaseServerClient } = await import("@/lib/supabase/server");
+  const client = await createSupabaseServerClient();
+  const { data, error } = await client.storage.from(bucket).createSignedUrls(paths, 60 * 60);
+  if (error || !data) throw error ?? new Error("sign-failed");
+  const out: Record<string, string> = {};
+  for (const item of data) if (item.path && item.signedUrl && !item.error) out[item.path] = item.signedUrl;
+  return out;
+}
+
+const hasServiceRole = () => Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
 function externalSource(m: MediaLike): MediaSource | null {
   switch (m.provider) {
     case "mux":
@@ -147,15 +166,21 @@ export async function resolveMediaSources(
     [...byBucket.entries()].map(async ([bucket, items]) => {
       const paths = [...new Set(items.map((i) => i.storage_path!))].sort();
       let urls: Record<string, string> = {};
+      const stable = mode === "public" || hasServiceRole();
       try {
-        urls = mode === "public" ? await getPublicUrls(bucket, paths) : await signAdminCached(bucket, paths);
+        urls =
+          mode === "public"
+            ? await getPublicUrls(bucket, paths)
+            : stable
+              ? await signAdminCached(bucket, paths)
+              : await signAdminWithSession(bucket, paths);
       } catch (error) {
         // Storage no disponible: la pàgina es mostra igualment, sense aquests fitxers.
         console.error(`[media] No s'han pogut signar ${paths.length} fitxers de «${bucket}»`, error);
       }
       for (const item of items) {
         const url = urls[item.storage_path!];
-        if (url) result.set(item.id, { kind: "file", url, mimeType: item.mime_type });
+        if (url) result.set(item.id, { kind: "file", url, mimeType: item.mime_type, stable });
       }
     }),
   );

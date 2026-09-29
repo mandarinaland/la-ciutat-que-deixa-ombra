@@ -14,7 +14,12 @@ export async function GET() {
   }
   const { error } = await createPublicClient().from("site_settings").select("key", { head: true, count: "exact" });
   return NextResponse.json(
-    { app: "ok", supabase: error ? "error" : "ok", env: process.env.VERCEL_ENV ?? "local" },
+    {
+      app: "ok",
+      supabase: error ? "error" : "ok",
+      serviceRole: process.env.SUPABASE_SERVICE_ROLE_KEY ? "configured" : "missing",
+      env: process.env.VERCEL_ENV ?? "local",
+    },
     { status: error ? 503 : 200, headers: { "Cache-Control": "no-store" } },
   );
 }

@@ -54,6 +54,13 @@ export default async function DashboardPage() {
         )}
       </header>
 
+      {!process.env.SUPABASE_SERVICE_ROLE_KEY ? (
+        <p role="note" className="border border-ember/50 p-4 font-mono text-xs leading-relaxed text-ember">
+          Falta la variable SUPABASE_SERVICE_ROLE_KEY a Vercel. L&apos;administració funciona, però les miniatures
+          es carreguen sense optimitzar. Afegeix-la a Settings → Environment Variables i torna a desplegar.
+        </p>
+      ) : null}
+
       <div>
         <h2 className="mb-4 font-mono text-[11px] uppercase tracking-widest text-smoke">Contingut d&apos;aquesta obra</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">

@@ -6,6 +6,9 @@ Obra digital: fotografia, literatura, veu, àudio i vídeo.
 Next.js 16 (App Router) · TypeScript · React 19 · Tailwind CSS 4 · Supabase (Auth, PostgreSQL, Storage) · Vercel.
 
 L'arquitectura completa (esquema de dades, RLS, fluxos, fases) és a [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+L'estat del desplegament real (Supabase + Vercel) i els passos pendents són a [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+**Producció:** https://la-ciutat-que-deixa-ombra.vercel.app
 
 > **Estat:** Fases 1–6 completades (Next.js + Vercel, Supabase, autenticació, model de dades, tauler, CRUD d'obres, capítols i vinyetes). Els apartats marcats amb *(Fase N)* s'activen quan s'implementi aquella fase.
 
@@ -77,10 +80,10 @@ Migracions (`supabase/migrations/`):
 
 | Fitxer | Contingut |
 |---|---|
-| `…0100_schema.sql` | tipus, taules, restriccions, índexs, triggers |
-| `…0200_security.sql` | esquema `private` amb funcions de permisos, vistes, reordenació atòmica, RLS, permisos |
-| `…0300_storage.sql` | buckets `images`, `audio`, `video` (privats) i polítiques |
-| `…0400_initial_work.sql` | projecte, obra *La ciutat que deixa ombra* (en esborrany), 9 capítols, configuració |
+| `…015505_schema.sql` | tipus, taules, restriccions, índexs, triggers |
+| `…015540_security.sql` | esquema `private` amb funcions de permisos, vistes, reordenació atòmica, RLS, permisos |
+| `…015551_storage.sql` | buckets `images`, `audio`, `video` (privats) i polítiques |
+| `…015559_initial_work.sql` | projecte, obra *La ciutat que deixa ombra* (en esborrany), 9 capítols, configuració |
 
 L'obra i els capítols es creen en **esborrany**: el públic no veurà res fins que els publiquis des de l'administració.
 
