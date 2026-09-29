@@ -31,6 +31,7 @@ export type PublicWork = Pick<
   | "title"
   | "subtitle"
   | "intro_text"
+  | "hero_quote"
   | "description"
   | "credit_photography"
   | "credit_text_voice"

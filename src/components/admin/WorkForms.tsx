@@ -29,6 +29,14 @@ export function WorkForm({ work }: { work: Tables<"works"> }) {
       <Field label="Frase introductòria (portada)" name="intro_text" error={fe.intro_text}>
         <textarea id="intro_text" name="intro_text" rows={3} defaultValue={work.intro_text ?? ""} className={`${inputClass} font-serif text-lg`} />
       </Field>
+      <Field
+        label="Aforisme (portada, columna dreta)"
+        name="hero_quote"
+        error={fe.hero_quote}
+        hint="La primera línia fa d'encapçalament; la resta és el text."
+      >
+        <textarea id="hero_quote" name="hero_quote" rows={4} defaultValue={work.hero_quote ?? ""} className={`${inputClass} font-serif text-lg`} />
+      </Field>
       <Field label="Descripció (SEO i pàgina d'obra)" name="description" error={fe.description}>
         <textarea id="description" name="description" rows={5} defaultValue={work.description ?? ""} className={inputClass} />
       </Field>

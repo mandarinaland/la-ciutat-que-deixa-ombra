@@ -40,6 +40,7 @@ type WorkRow = Timestamps & {
   title: string;
   subtitle: string | null;
   intro_text: string | null;
+  hero_quote: string | null;
   description: string | null;
   credit_photography: string | null;
   credit_text_voice: string | null;

@@ -19,7 +19,7 @@ export const CONTENT_TAG = "content";
 const CACHE: { tags: string[]; revalidate: number } = { tags: [CONTENT_TAG], revalidate: 3600 };
 
 const WORK_FIELDS =
-  "id, slug, title, subtitle, intro_text, description, credit_photography, credit_text_voice, cover_media_id, updated_at";
+  "id, slug, title, subtitle, intro_text, hero_quote, description, credit_photography, credit_text_voice, cover_media_id, updated_at";
 
 export const getPublishedWork = unstable_cache(
   async (slug: string): Promise<PublicWork | null> => {
@@ -32,7 +32,7 @@ export const getPublishedWork = unstable_cache(
     if (error) throw error;
     return data;
   },
-  ["public-work-v1"],
+  ["public-work-v2"],
   CACHE,
 );
 
@@ -46,7 +46,7 @@ export const getPublishedWorks = unstable_cache(
     if (error) throw error;
     return data ?? [];
   },
-  ["public-works-v1"],
+  ["public-works-v2"],
   CACHE,
 );
 

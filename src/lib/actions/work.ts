@@ -70,6 +70,7 @@ const updateSchema = z.object({
   slug: slugField,
   subtitle: optionalText(300),
   intro_text: optionalText(1000),
+  hero_quote: optionalText(1000),
   description: optionalText(10000),
   credit_photography: optionalText(300),
   credit_text_voice: optionalText(300),
