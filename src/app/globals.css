@@ -48,3 +48,51 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Experiència pública ───────────────────────────────────────────── */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    filter: brightness(0.4);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+.photo-reveal {
+  animation: reveal 900ms var(--ease-shadow) both;
+}
+.cover-reveal {
+  animation: reveal 1800ms var(--ease-shadow) both;
+}
+
+/* Barra de la veu: fina, com una línia de tinta */
+.voice-range {
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.voice-range::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(to right, var(--color-paper) var(--p, 0%), var(--color-line) var(--p, 0%));
+}
+.voice-range::-moz-range-track {
+  height: 2px;
+  background: linear-gradient(to right, var(--color-paper) var(--p, 0%), var(--color-line) var(--p, 0%));
+}
+.voice-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  border-radius: 9999px;
+  background: var(--color-paper);
+}
+.voice-range::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--color-paper);
+}

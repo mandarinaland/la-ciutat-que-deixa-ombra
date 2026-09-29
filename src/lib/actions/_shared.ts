@@ -12,7 +12,8 @@ export function touchContent({ media = false }: { media?: boolean } = {}) {
   updateTag(CONTENT_TAG);
   // Els enllaços signats d'un fitxer que acaba de publicar-se o despublicar-se han de renovar-se.
   if (media) updateTag(MEDIA_URLS_TAG);
-  revalidatePath("/admin", "layout");
+  // Pàgines públiques ja generades (ISR): la següent visita es torna a renderitzar.
+  revalidatePath("/", "layout");
 }
 
 /** Text opcional: "" → null, retalla espais, limita la llargada. */

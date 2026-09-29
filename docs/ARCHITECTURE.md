@@ -228,6 +228,16 @@ Detalls:
 - Publicar exigeix fotografia principal **amb text alternatiu**.
 - Els formularis no es buiden si el servidor retorna un error (`useActionForm`).
 
+## 4c. Experiència pública
+
+- `lib/data/auca.ts` — una sola capa de dades amb dos modes: `public` (client anònim + `unstable_cache`, etiqueta `content`) i `preview` (sessió d'admin, inclou esborranys, sense cache). Els components són els mateixos.
+- `/` — portada (foto de portada, títol, subtítol, frase d'entrada, crèdits) + **recorregut**: totes les vinyetes publicades en ordre de lectura, agrupades per capítols i compostes en files justificades segons la proporció de cada foto. Una vinyeta en un capítol no publicat surt sense capçalera de capítol.
+- `/auca/[obra]/[n]` — lector: foto a pantalla, text de Piath, veu (només en clicar), vídeo opcional, ← → / Esc / lliscar, barra de progrés, precàrrega només de la foto següent.
+- Àudio ambient: `AmbientProvider` viu al layout públic; el visitant l'activa una vegada (es recorda a la sessió) i continua entre vinyetes si és el mateix fitxer; si la vinyeta no en té, s'esvaeix.
+- `/auca/[obra]/[capítol]`, `/capitols`, `/capitols/[slug]` (redirigeix), `sitemap.xml` amb vinyetes i capítols.
+- `/admin/preview/[obra]/[[...segment]]` — la mateixa web amb esborranys, protegida per `requireAdmin()`.
+- Revalidació: cada acció d'admin crida `touchContent()` → `updateTag('content')` + `revalidatePath('/', 'layout')`; la primera visita després de publicar ja veu el canvi.
+
 ## 5. Fases d'implementació
 
 | Fase | Contingut | Lliurable verificable |
@@ -242,8 +252,8 @@ Detalls:
 | 8 | Pujada d'imatges (drag & drop, progrés, cancel·lar, substituir) + portada de l'obra | fet |
 | 9 | Àudio i vídeo (pujada, durada, veu de Piath, àudio ambient, vídeo + pòster) | fet a l'admin; reproductor públic a la Fase 12 |
 | 10 | Drag & drop de l'ordre → `reorder_vignettes` | |
-| 11 | Experiència pública: portada, capítols | |
-| 12 | Mode auca: lectura seqüencial, teclat, swipe, preload | |
+| 11 | Experiència pública: portada, recorregut (fotollibre per capítols), pàgines de capítol, sitemap | fet (37 proves E2E) |
+| 12 | Mode auca: lectura seqüencial, teclat, lliscar, precàrrega, veu, àudio ambient continu, vídeo, previsualització amb esborranys | fet |
 | 13 | Responsive | |
 | 14 | SEO: metadata, OG per vinyeta, sitemap, robots, canonical | |
 | 15 | Performance: cache, preload, dynamic imports | |

@@ -1,33 +1,30 @@
-import Link from "next/link";
-import { siteConfig } from "@/lib/site";
-import { routes } from "@/lib/routing";
+import type { Metadata } from "next";
+import { QuietPage } from "@/components/public/QuietPage";
+import { LandingView } from "@/components/auca/views";
+import { hrefsFor, loadLanding } from "@/lib/data/auca";
+import { landingMetadata } from "@/lib/data/auca-meta";
+import { DEFAULT_WORK_SLUG, isSupabaseConfigured } from "@/lib/env";
 
-/**
- * Portada.
- * FASE 11: la imatge de portada (works.cover_media_id) i la frase introductòria
- * (works.intro_text) es llegiran de Supabase. Aquí no s'inventa cap contingut.
- */
-export default function HomePage() {
-  return (
-    <main id="contingut" className="flex min-h-dvh flex-col items-center justify-center px-6 py-24">
-      <div className="flex w-full max-w-3xl flex-col items-center gap-10 text-center">
-        <h1 className="text-4xl leading-tight uppercase tracking-[var(--tracking-title)] sm:text-6xl">
-          La ciutat
-          <br />
-          que deixa ombra
-        </h1>
-        <p className="text-lg italic text-smoke sm:text-xl">{siteConfig.tagline}</p>
+export const revalidate = 3600;
 
-        {/* Marc de la fotografia de portada (FASE 11). Proporció fixa per evitar salts de layout. */}
-        <div aria-hidden className="aspect-[3/2] w-full border border-line bg-ink-soft" />
+async function load() {
+  return isSupabaseConfigured() ? loadLanding("public", DEFAULT_WORK_SLUG) : null;
+}
 
-        <Link
-          href={routes.auca()}
-          className="border border-paper/60 px-10 py-4 font-mono text-xs uppercase tracking-[0.3em] transition-colors duration-500 ease-[var(--ease-shadow)] hover:bg-paper hover:text-ink"
-        >
-          Començar
-        </Link>
-      </div>
-    </main>
-  );
+export async function generateMetadata(): Promise<Metadata> {
+  const landing = await load();
+  return landing ? landingMetadata(landing, "/") : {};
+}
+
+/** Portada: l'obra per defecte, amb tot el recorregut publicat des de l'administració. */
+export default async function HomePage() {
+  const landing = await load();
+  if (!landing) {
+    return (
+      <QuietPage eyebrow="Auca de David Teulats · Veu de Piath" title="La ciutat que deixa ombra">
+        L&apos;obra encara s&apos;està revelant.
+      </QuietPage>
+    );
+  }
+  return <LandingView landing={landing} hrefs={hrefsFor("public", DEFAULT_WORK_SLUG)} />;
 }
