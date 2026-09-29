@@ -236,6 +236,7 @@ Detalls:
 - Àudio ambient: `AmbientProvider` viu al layout públic; el visitant l'activa una vegada (es recorda a la sessió) i continua entre vinyetes si és el mateix fitxer; si la vinyeta no en té, s'esvaeix.
 - `/auca/[obra]/[capítol]`, `/capitols`, `/capitols/[slug]` (redirigeix), `sitemap.xml` amb vinyetes i capítols.
 - `/admin/preview/[obra]/[[...segment]]` — la mateixa web amb esborranys, protegida per `requireAdmin()`.
+- Ordenar: `/admin/vignettes/ordre` i `/admin/chapters/ordre` (`SortableList`, dnd-kit). Els canvis són locals fins a «Desar l'ordre», que envia la llista completa en una sola crida transaccional; avís si es tanca la pàgina sense desar.
 - Revalidació: cada acció d'admin crida `touchContent()` → `updateTag('content')` + `revalidatePath('/', 'layout')`; la primera visita després de publicar ja veu el canvi.
 
 ## 5. Fases d'implementació
@@ -251,7 +252,7 @@ Detalls:
 | 7 | Mediateca (cerca, ús, eliminar, reutilitzar) + configuració (límits, administradors) | fet (31 proves E2E) |
 | 8 | Pujada d'imatges (drag & drop, progrés, cancel·lar, substituir) + portada de l'obra | fet |
 | 9 | Àudio i vídeo (pujada, durada, veu de Piath, àudio ambient, vídeo + pòster) | fet a l'admin; reproductor públic a la Fase 12 |
-| 10 | Drag & drop de l'ordre → `reorder_vignettes` | |
+| 10 | Ordenar arrossegant (ratolí, dit, teclat, «moure a la posició») → `reorder_vignettes` / `reorder_chapters` | fet (15 proves E2E) |
 | 11 | Experiència pública: portada, recorregut (fotollibre per capítols), pàgines de capítol, sitemap | fet (37 proves E2E) |
 | 12 | Mode auca: lectura seqüencial, teclat, lliscar, precàrrega, veu, àudio ambient continu, vídeo, previsualització amb esborranys | fet |
 | 13 | Responsive | |

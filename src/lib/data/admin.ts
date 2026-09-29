@@ -181,3 +181,28 @@ export async function getDashboardStats(workId: string | null): Promise<Dashboar
   const storageBytes = (sizes.data ?? []).reduce((acc, m) => acc + Number(m.size ?? 0), 0);
   return { works, chapters, vignettes, drafts, published, archived, images, audio, video, storageBytes };
 }
+
+/** Totes les vinyetes de l'obra (qualsevol estat) amb la foto principal: pantalla d'ordenar. */
+export async function listVignettesForOrdering(workId: string) {
+  const supabase = await createSupabaseServerClient();
+  const [{ data: rows, error }, { data: links, error: linkError }] = await Promise.all([
+    supabase
+      .from("vignettes")
+      .select("id, title, slug, status, chapter_id, piath_text")
+      .eq("work_id", workId)
+      .order("order_index"),
+    // Una sola consulta per a totes les fotos (sense llistes d'ids a la URL).
+    supabase
+      .from("vignette_media")
+      .select(`vignette_id, media(${MEDIA_FIELDS}), vignettes!inner(work_id)`)
+      .eq("role", "main_image")
+      .eq("vignettes.work_id", workId),
+  ]);
+  if (error) throw error;
+  if (linkError) throw linkError;
+  const images = new Map<string, MediaLink["media"]>();
+  for (const l of (links ?? []) as unknown as { vignette_id: string; media: MediaLink["media"] | null }[]) {
+    if (l.media) images.set(l.vignette_id, l.media);
+  }
+  return (rows ?? []).map((v) => ({ ...v, main_image: images.get(v.id) ?? null }));
+}

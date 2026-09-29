@@ -62,7 +62,12 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
             {list.total} vinyetes{filtering ? <span className="text-smoke"> · {list.filtered} filtrades</span> : null}
           </h1>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          {list.total > 1 ? (
+            <Link href="/admin/vignettes/ordre" className={buttonClass("ghost")}>
+              ⇅ Ordenar
+            </Link>
+          ) : null}
           <Link href={`/admin/preview/${work.slug}`} className={buttonClass("ghost")}>
             Previsualitza l&apos;auca
           </Link>

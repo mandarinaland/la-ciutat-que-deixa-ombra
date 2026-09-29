@@ -1,4 +1,4 @@
-/** Moure amunt/avall (sense JavaScript). L'arrossegar-i-deixar arriba a la Fase 10. */
+/** Moure amunt/avall d'una posició (funciona sense JavaScript). Per a canvis grans: pàgina «Ordenar». */
 export function MoveButtons({
   id,
   action,

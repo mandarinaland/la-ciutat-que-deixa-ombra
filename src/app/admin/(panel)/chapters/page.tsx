@@ -22,9 +22,16 @@ export default async function ChaptersAdminPage() {
 
   return (
     <section className="flex flex-col gap-10">
-      <header className="border-b border-line pb-4">
-        <p className="font-mono text-[11px] uppercase tracking-widest text-smoke">Capítols · {work.title}</p>
-        <h1 className="text-3xl">{chapters.length} capítols</h1>
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-widest text-smoke">Capítols · {work.title}</p>
+          <h1 className="text-3xl">{chapters.length} capítols</h1>
+        </div>
+        {chapters.length > 1 ? (
+          <Link href="/admin/chapters/ordre" className={buttonClass("ghost")}>
+            ⇅ Ordenar
+          </Link>
+        ) : null}
       </header>
 
       <ol className="divide-y divide-line border-y border-line">
