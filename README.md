@@ -10,7 +10,7 @@ L'estat del desplegament real (Supabase + Vercel) i els passos pendents són a [
 
 **Producció:** https://la-ciutat-que-deixa-ombra.vercel.app
 
-> **Estat:** Fases 1–14 completades (Next.js + Vercel, Supabase, autenticació, model de dades, tauler, CRUD d'obres, capítols i vinyetes, mediateca, pujades d'imatge/àudio/vídeo, configuració i administradors, portada pública amb recorregut i lector de l'auca). Els apartats marcats amb *(Fase N)* s'activen quan s'implementi aquella fase.
+> **Estat:** Totes les fases (1–17) completades (Next.js + Vercel, Supabase, autenticació, model de dades, tauler, CRUD d'obres, capítols i vinyetes, mediateca, pujades d'imatge/àudio/vídeo, configuració i administradors, portada pública amb recorregut i lector de l'auca).
 
 ---
 
@@ -48,7 +48,7 @@ Scripts:
 | `SUPABASE_SERVICE_ROLE_KEY` | **només servidor** | **sí — "Sensitive"** | ✔ | ✔ | ✔ |
 | `NEXT_PUBLIC_SITE_URL` | URLs canòniques, OG, sitemap | no | `http://localhost:3000` | *buida* (usa `VERCEL_URL`) | `https://el-teu-domini` |
 | `NEXT_PUBLIC_DEFAULT_WORK_SLUG` | obra de `/` i `/auca` | no | ✔ | ✔ | ✔ |
-| `REVALIDATE_SECRET` | `/api/revalidate` *(Fase 15)* | sí | opcional | opcional | ✔ |
+| `REVALIDATE_SECRET` | `/api/revalidate` | sí | opcional | opcional | ✔ |
 | `NEXT_PUBLIC_CLOUDFLARE_STREAM_CUSTOMER_CODE` | vídeo a Cloudflare Stream (futur) | no | — | — | opcional |
 
 Regles:

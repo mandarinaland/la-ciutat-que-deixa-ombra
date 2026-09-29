@@ -259,6 +259,6 @@ Detalls:
 | 12 | Mode auca: lectura seqüencial, teclat, lliscar, precàrrega, veu, àudio ambient continu, vídeo, previsualització amb esborranys | fet |
 | 13 | Responsive: web pública (320–1440 px) i admin amb menú plegable al mòbil | fet |
 | 14 | SEO: metadades, imatge per compartir generada per vinyeta/capítol/portada, JSON-LD, sitemap, robots, canonical | fet (40 proves E2E públiques) |
-| 15 | Performance: cache, preload, dynamic imports | |
-| 16 | Seguretat: CSP, auditoria RLS, `get_advisors` de Supabase | |
-| 17 | Deploy a Vercel + domini | |
+| 15 | Rendiment: ISR + cache per etiqueta, precàrrega de la foto següent, `content-visibility` al recorregut, `/api/revalidate` | fet (mòbil 4G: LCP ≈ 0,6 s, CLS 0, 141 KB de JS) |
+| 16 | Seguretat: CSP, HSTS, auditoria de totes les Server Actions (`requireAdmin`), redirecció de login segura, advisors de Supabase | fet |
+| 17 | Deploy a Vercel + domini `www.deixaombra.art` | fet (vegeu docs/DEPLOY.md) |

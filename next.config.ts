@@ -31,7 +31,39 @@ function isLocalSupabase(): boolean {
   return host === "127.0.0.1" || host === "localhost";
 }
 
+/**
+ * Content-Security-Policy. Sense nonce (les pàgines públiques són estàtiques/ISR),
+ * però tancada a: el mateix origen + Supabase (fitxers, pujades) i res més.
+ */
+function contentSecurityPolicy(): string {
+  const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin : "";
+  const dev = process.env.NODE_ENV !== "production";
+  // La barra de comentaris de Vercel només existeix als desplegaments de Preview.
+  const vercelLive = process.env.VERCEL_ENV === "preview" ? "https://vercel.live" : "";
+  const directives: Record<string, string[]> = {
+    "default-src": ["'self'"],
+    "script-src": ["'self'", "'unsafe-inline'", dev ? "'unsafe-eval'" : "", vercelLive],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "img-src": ["'self'", "data:", "blob:", supabase],
+    "media-src": ["'self'", "blob:", supabase],
+    "font-src": ["'self'", "data:"],
+    "connect-src": ["'self'", supabase, supabase.replace(/^http/, "ws"), vercelLive],
+    "frame-src": [vercelLive || "'none'"],
+    "frame-ancestors": ["'none'"],
+    "object-src": ["'none'"],
+    "base-uri": ["'self'"],
+    "form-action": ["'self'"],
+    ...(supabase.startsWith("https:") ? { "upgrade-insecure-requests": [] } : {}),
+  };
+  return Object.entries(directives)
+    .map(([k, v]) => [k, ...v.filter(Boolean)].join(" "))
+    .join("; ");
+}
+
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy() },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
