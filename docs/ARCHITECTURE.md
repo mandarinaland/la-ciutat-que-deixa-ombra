@@ -43,7 +43,7 @@
 | Auth | Supabase Auth amb `@supabase/ssr` (cookies) | Sessió llegible des del servidor, sense tokens a `localStorage`. |
 | Permisos | RLS + funció `is_admin()` + comprovació al servidor (`requireAdmin()`) | Doble barrera: el frontend mai no decideix res. |
 | Escriptures admin | Server Actions amb el client de **sessió** (RLS s'aplica) | La service role no es fa servir per a CRUD normal. |
-| Service role | Només a `src/lib/supabase/admin.ts` amb `import "server-only"`; cap flux normal la necessita | Si algú l'importa des del client, el build falla. |
+| Service role | Només a `src/lib/supabase/admin.ts` amb `import "server-only"`. Únic ús: signar miniatures i esborranys a l'admin (darrere de `requireAdmin()`) | Si algú l'importa des del client, el build falla. El CRUD sempre va amb la sessió de l'admin i RLS. |
 | Funcions de permisos | Esquema `private` (no exposat per l'API REST) | Les polítiques les fan servir, però ningú no les pot cridar via `/rest/v1/rpc`. |
 | Buckets | **Privats**. Política de Storage: `anon` només pot signar objectes de contingut publicat | Els esborranys no són accessibles encara que se n'endevini el camí; no cal service role per servir media. |
 | URLs signades | Vàlides 7 dies, reutilitzades 6 dies (`unstable_cache`, etiqueta `media-urls`) | La mateixa URL durant la finestra → cache de `next/image` i CDN estable. Els resultats incomplets no es cachegen. |
@@ -211,6 +211,15 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 
 ---
 
+## 4b. Capa de dades i accions
+
+- `lib/data/public.ts` — lectures públiques amb el client anònim, cachejades amb `unstable_cache` (etiqueta `content`, revalidació d'1 h com a xarxa de seguretat).
+- `lib/data/admin.ts` — lectures d'admin amb la sessió (sense cache). L'obra en edició es recorda amb la cookie `admin_work` (preparat per a diverses auques).
+- `lib/actions/*` — Server Actions. Patró obligatori: `requireAdmin()` → validació zod → client de sessió → `touchContent()` (`updateTag('content')`, i `updateTag('media-urls')` si canvia la visibilitat).
+- L'estat d'una vinyeta només canvia amb botons explícits (Publicar, Despublicar, Arxivar); "Guardar" mai no el modifica.
+- Publicar exigeix fotografia principal **amb text alternatiu**.
+- Els formularis no es buiden si el servidor retorna un error (`useActionForm`).
+
 ## 5. Fases d'implementació
 
 | Fase | Contingut | Lliurable verificable |
@@ -220,7 +229,7 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 | 3 | Auth: login, `proxy.ts`, `requireAdmin()`, primer administrador | `/admin` inaccessible sense sessió |
 | 4 | Model Work/Chapter/Vignette/Media + capa `lib/data` | consultes tipades |
 | 5 | Dashboard amb estadístiques | comptadors reals |
-| 6 | CRUD de vinyetes + editor | crear/editar/publicar/eliminar |
+| 6 | CRUD d'obres, capítols i vinyetes + editor | crear/editar/publicar/eliminar (25 proves E2E) |
 | 7 | Mediateca (cerca, ús, eliminar, reutilitzar) | |
 | 8 | Pujada d'imatges (drag & drop, progrés, cancel·lar, substituir) | |
 | 9 | Àudio i vídeo (reproductor, abstracció de proveïdor) | |

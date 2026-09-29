@@ -1,7 +1,6 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Tables } from "@/types/database";
+import type { Tables } from "@/types/database";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -22,7 +21,6 @@ type MediaLike = Pick<
 /** Validesa de les URLs signades i durada de la cache que les reutilitza. */
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 dies
 const SIGNED_URL_CACHE_SECONDS = 60 * 60 * 24 * 6; // es renoven 1 dia abans de caducar
-const PREVIEW_URL_TTL_SECONDS = 60 * 60; // previsualització d'admin: 1 hora, sense cache
 
 export const MEDIA_URLS_TAG = "media-urls";
 
@@ -72,17 +70,27 @@ async function getPublicUrls(bucket: string, paths: string[]): Promise<Record<st
   }
 }
 
-async function signWith(
-  client: SupabaseClient<Database>,
-  bucket: string,
-  paths: string[],
-): Promise<Record<string, string>> {
-  const { data, error } = await client.storage.from(bucket).createSignedUrls(paths, PREVIEW_URL_TTL_SECONDS);
-  if (error || !data) return {};
+/**
+ * Mode ADMIN (miniatures, editor, previsualització amb esborranys).
+ * Fa servir la service role — la RLS no deixaria signar esborranys amb la clau pública —
+ * però NOMÉS s'invoca des de pàgines que ja han passat per requireAdmin().
+ * També es cacheja perquè next/image no torni a optimitzar la mateixa foto a cada visita.
+ */
+async function signAdmin(bucket: string, paths: string[]): Promise<Record<string, string>> {
+  const { createSupabaseServiceClient } = await import("@/lib/supabase/admin");
+  const { data, error } = await createSupabaseServiceClient()
+    .storage.from(bucket)
+    .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
+  if (error || !data) throw error ?? new Error("sign-failed");
   const out: Record<string, string> = {};
   for (const item of data) if (item.path && item.signedUrl && !item.error) out[item.path] = item.signedUrl;
   return out;
 }
+
+const signAdminCached = unstable_cache(signAdmin, ["signed-media-urls-admin-v1"], {
+  revalidate: SIGNED_URL_CACHE_SECONDS,
+  tags: [MEDIA_URLS_TAG],
+});
 
 function externalSource(m: MediaLike): MediaSource | null {
   switch (m.provider) {
@@ -109,12 +117,12 @@ function externalSource(m: MediaLike): MediaSource | null {
 
 /**
  * Resol les fonts d'una llista de fitxers.
- *  · mode "public": client anònim + cache (només contingut publicat).
- *  · mode "preview": client de sessió de l'admin, URLs curtes, sense cache (inclou esborranys).
+ *  · "public": client anònim + cache (Storage només signa contingut publicat).
+ *  · "admin":  service role + cache (inclou esborranys). Només darrere de requireAdmin().
  */
 export async function resolveMediaSources(
   media: MediaLike[],
-  options: { mode: "public" } | { mode: "preview"; client: SupabaseClient<Database> } = { mode: "public" },
+  mode: "public" | "admin" = "public",
 ): Promise<Map<string, MediaSource>> {
   const result = new Map<string, MediaSource>();
   const byBucket = new Map<string, MediaLike[]>();
@@ -138,8 +146,13 @@ export async function resolveMediaSources(
   await Promise.all(
     [...byBucket.entries()].map(async ([bucket, items]) => {
       const paths = [...new Set(items.map((i) => i.storage_path!))].sort();
-      const urls =
-        options.mode === "public" ? await getPublicUrls(bucket, paths) : await signWith(options.client, bucket, paths);
+      let urls: Record<string, string> = {};
+      try {
+        urls = mode === "public" ? await getPublicUrls(bucket, paths) : await signAdminCached(bucket, paths);
+      } catch (error) {
+        // Storage no disponible: la pàgina es mostra igualment, sense aquests fitxers.
+        console.error(`[media] No s'han pogut signar ${paths.length} fitxers de «${bucket}»`, error);
+      }
       for (const item of items) {
         const url = urls[item.storage_path!];
         if (url) result.set(item.id, { kind: "file", url, mimeType: item.mime_type });

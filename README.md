@@ -7,7 +7,7 @@ Next.js 16 (App Router) · TypeScript · React 19 · Tailwind CSS 4 · Supabase 
 
 L'arquitectura completa (esquema de dades, RLS, fluxos, fases) és a [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-> **Estat:** Fases 1–3 completades (Next.js + Vercel, Supabase + PostgreSQL, autenticació). Els apartats marcats amb *(Fase N)* s'activen quan s'implementi aquella fase.
+> **Estat:** Fases 1–6 completades (Next.js + Vercel, Supabase, autenticació, model de dades, tauler, CRUD d'obres, capítols i vinyetes). Els apartats marcats amb *(Fase N)* s'activen quan s'implementi aquella fase.
 
 ---
 
