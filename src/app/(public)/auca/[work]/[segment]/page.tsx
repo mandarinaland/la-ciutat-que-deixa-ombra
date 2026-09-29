@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ChapterPageView, ReaderView } from "@/components/auca/views";
 import { hrefsFor, loadChapter, loadVignette } from "@/lib/data/auca";
-import { vignetteMetadata } from "@/lib/data/auca-meta";
+import { vignetteJsonLd, vignetteMetadata } from "@/lib/data/auca-meta";
+import { JsonLd } from "@/components/auca/JsonLd";
+import { DEFAULT_WORK_SLUG } from "@/lib/env";
 import { isValidSlug, parseSegment, routes } from "@/lib/routing";
 
 export const revalidate = 3600;
@@ -44,7 +46,12 @@ export default async function SegmentPage({ params }: Props) {
   if (parsed.kind === "vignette") {
     const v = await loadVignette("public", work, parsed.number);
     if (!v) notFound();
-    return <ReaderView v={v} hrefs={hrefs} />;
+    return (
+      <>
+        <JsonLd data={vignetteJsonLd(v, routes.vignette(work, parsed.number), work === DEFAULT_WORK_SLUG ? "/" : routes.work(work))} />
+        <ReaderView v={v} hrefs={hrefs} />
+      </>
+    );
   }
   if (parsed.kind === "chapter") {
     const c = await loadChapter("public", work, parsed.slug);

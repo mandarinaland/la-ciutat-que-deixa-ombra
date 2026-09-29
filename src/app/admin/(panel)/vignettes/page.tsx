@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentWork, listChapters, listVignettes } from "@/lib/data/admin";
 import { resolveMediaSources } from "@/lib/media/sources";
-import { createVignetteAction, moveVignetteAction } from "@/lib/actions/vignettes";
+import {
+  createVignetteAction,
+  moveVignetteAction,
+} from "@/lib/actions/vignettes";
 import { formatVignetteNumber } from "@/lib/routing";
 import { excerpt } from "@/lib/format";
 import { MoveButtons } from "@/components/admin/MoveButtons";
@@ -12,7 +15,9 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 
 export const metadata: Metadata = { title: "Vinyetes" };
 
-type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 const STATUSES = ["draft", "published", "archived"] as const;
 
@@ -21,13 +26,18 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
   if (!work) {
     return (
       <p className="font-mono text-sm text-smoke">
-        Encara no hi ha cap obra. <Link href="/admin/work" className="underline">Crea&apos;n una</Link>.
+        Encara no hi ha cap obra.{" "}
+        <Link href="/admin/work" className="underline">
+          Crea&apos;n una
+        </Link>
+        .
       </p>
     );
   }
 
   const sp = await searchParams;
-  const one = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const one = (k: string) =>
+    typeof sp[k] === "string" ? (sp[k] as string) : undefined;
   const estat = STATUSES.find((s) => s === one("estat"));
   const capitol = one("capitol");
   const q = one("q");
@@ -57,23 +67,36 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
     <section className="flex flex-col gap-8">
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-widest text-smoke">Vinyetes · {work.title}</p>
+          <p className="font-mono text-[11px] uppercase tracking-widest text-smoke">
+            Vinyetes · {work.title}
+          </p>
           <h1 className="text-3xl">
-            {list.total} vinyetes{filtering ? <span className="text-smoke"> · {list.filtered} filtrades</span> : null}
+            {list.total} vinyetes
+            {filtering ? (
+              <span className="text-smoke"> · {list.filtered} filtrades</span>
+            ) : null}
           </h1>
         </div>
         <div className="flex flex-wrap gap-3">
           {list.total > 1 ? (
-            <Link href="/admin/vignettes/ordre" className={buttonClass("ghost")}>
+            <Link
+              href="/admin/vignettes/ordre"
+              className={buttonClass("ghost")}
+            >
               ⇅ Ordenar
             </Link>
           ) : null}
-          <Link href={`/admin/preview/${work.slug}`} className={buttonClass("ghost")}>
+          <Link
+            href={`/admin/preview/${work.slug}`}
+            className={buttonClass("ghost")}
+          >
             Previsualitza l&apos;auca
           </Link>
           <form action={createVignetteAction}>
             <input type="hidden" name="work_id" value={work.id} />
-            {capitol && capitol !== "none" ? <input type="hidden" name="chapter_id" value={capitol} /> : null}
+            {capitol && capitol !== "none" ? (
+              <input type="hidden" name="chapter_id" value={capitol} />
+            ) : null}
             <button type="submit" className={buttonClass()}>
               + Nova vinyeta
             </button>
@@ -83,12 +106,25 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
 
       <form className="flex flex-wrap items-end gap-3" role="search">
         <label className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-smoke">Cerca</span>
-          <input name="q" defaultValue={q} placeholder="títol, text…" className={`${inputClass} w-56`} />
+          <span className="font-mono text-[11px] uppercase tracking-widest text-smoke">
+            Cerca
+          </span>
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="títol, text…"
+            className={`${inputClass} w-56`}
+          />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-smoke">Estat</span>
-          <select name="estat" defaultValue={estat ?? ""} className={`${inputClass} w-40`}>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-smoke">
+            Estat
+          </span>
+          <select
+            name="estat"
+            defaultValue={estat ?? ""}
+            className={`${inputClass} w-40`}
+          >
             <option value="">Tots</option>
             <option value="published">Publicades</option>
             <option value="draft">Esborranys</option>
@@ -96,8 +132,14 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-widest text-smoke">Capítol</span>
-          <select name="capitol" defaultValue={capitol ?? ""} className={`${inputClass} w-56`}>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-smoke">
+            Capítol
+          </span>
+          <select
+            name="capitol"
+            defaultValue={capitol ?? ""}
+            className={`${inputClass} w-56`}
+          >
             <option value="">Tots</option>
             <option value="none">Sense capítol</option>
             {chapters.map((c) => (
@@ -111,7 +153,10 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
           Filtrar
         </button>
         {filtering ? (
-          <Link href="/admin/vignettes" className="pb-2 font-mono text-[11px] uppercase tracking-widest text-smoke hover:text-paper">
+          <Link
+            href="/admin/vignettes"
+            className="pb-2 font-mono text-[11px] uppercase tracking-widest text-smoke hover:text-paper"
+          >
             Netejar
           </Link>
         ) : null}
@@ -119,40 +164,63 @@ export default async function VignettesAdminPage({ searchParams }: Props) {
 
       {list.rows.length === 0 ? (
         <p className="border border-dashed border-line p-10 text-center font-mono text-sm text-smoke">
-          {list.total === 0 ? "Encara no hi ha cap vinyeta. Crea la primera." : "Cap vinyeta coincideix amb el filtre."}
+          {list.total === 0
+            ? "Encara no hi ha cap vinyeta. Crea la primera."
+            : "Cap vinyeta coincideix amb el filtre."}
         </p>
       ) : (
         <ol className="divide-y divide-line border-y border-line">
           {list.rows.map((v) => (
-            <li key={v.id} className="flex items-center gap-4 py-3">
-              <span className="w-12 shrink-0 font-mono text-lg tabular-nums text-smoke">
+            <li
+              key={v.id}
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3"
+            >
+              <span className="w-10 shrink-0 font-mono text-lg tabular-nums text-smoke sm:w-12">
                 {formatVignetteNumber(v.position, list.total)}
               </span>
-              <Thumb media={v.main_image} source={v.main_image ? sources.get(v.main_image.id) : undefined} />
-              <Link href={`/admin/vignettes/${v.id}`} className="group min-w-0 flex-1">
-                <span className="block truncate text-lg group-hover:underline">{v.title || <em className="text-smoke">Sense títol</em>}</span>
-                <span className="block truncate font-serif text-sm italic text-smoke">{excerpt(v.piath_text) || "—"}</span>
+              <Thumb
+                media={v.main_image}
+                source={v.main_image ? sources.get(v.main_image.id) : undefined}
+              />
+              <Link
+                href={`/admin/vignettes/${v.id}`}
+                className="group min-w-0 flex-1 basis-40"
+              >
+                <span className="block truncate text-lg group-hover:underline">
+                  {v.title || <em className="text-smoke">Sense títol</em>}
+                </span>
+                <span className="block truncate font-serif text-sm italic text-smoke">
+                  {excerpt(v.piath_text) || "—"}
+                </span>
                 <span className="block font-mono text-[11px] text-smoke/80">
-                  {v.chapter_id ? chapterTitle.get(v.chapter_id) : "Sense capítol"} · /{v.slug}
+                  {v.chapter_id
+                    ? chapterTitle.get(v.chapter_id)
+                    : "Sense capítol"}{" "}
+                  · /{v.slug}
                 </span>
               </Link>
-              <StatusBadge status={v.status} />
-              {!filtering ? (
-                <MoveButtons
-                  id={v.id}
-                  action={moveVignetteAction}
-                  isFirst={v.position === 1}
-                  isLast={v.position === list.total}
-                  label={`vinyeta ${v.position}`}
-                />
-              ) : null}
+              <span className="flex w-full items-center justify-end gap-3 sm:w-auto">
+                <StatusBadge status={v.status} />
+                {!filtering ? (
+                  <MoveButtons
+                    id={v.id}
+                    action={moveVignetteAction}
+                    isFirst={v.position === 1}
+                    isLast={v.position === list.total}
+                    label={`vinyeta ${v.position}`}
+                  />
+                ) : null}
+              </span>
             </li>
           ))}
         </ol>
       )}
 
       {list.pages > 1 ? (
-        <nav aria-label="Pàgines" className="flex flex-wrap items-center gap-2 font-mono text-xs">
+        <nav
+          aria-label="Pàgines"
+          className="flex flex-wrap items-center gap-2 font-mono text-xs"
+        >
           {Array.from({ length: list.pages }, (_, i) => i + 1).map((p) => (
             <Link
               key={p}

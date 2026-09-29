@@ -43,6 +43,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Les imatges per compartir llegeixen les fonts del disc: que viatgin amb la funció.
+  outputFileTracingIncludes: { "/**/opengraph-image": ["./src/assets/og/**"] },
   poweredByHeader: false,
 
   images: {

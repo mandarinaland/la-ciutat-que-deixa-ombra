@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { QuietPage } from "@/components/public/QuietPage";
 import { LandingView } from "@/components/auca/views";
 import { hrefsFor, loadLanding } from "@/lib/data/auca";
-import { landingMetadata } from "@/lib/data/auca-meta";
+import { landingJsonLd, landingMetadata } from "@/lib/data/auca-meta";
+import { JsonLd } from "@/components/auca/JsonLd";
 import { DEFAULT_WORK_SLUG, isSupabaseConfigured } from "@/lib/env";
 
 export const revalidate = 3600;
@@ -26,5 +27,10 @@ export default async function HomePage() {
       </QuietPage>
     );
   }
-  return <LandingView landing={landing} hrefs={hrefsFor("public", DEFAULT_WORK_SLUG)} />;
+  return (
+    <>
+      <JsonLd data={landingJsonLd(landing, "/")} />
+      <LandingView landing={landing} hrefs={hrefsFor("public", DEFAULT_WORK_SLUG)} />
+    </>
+  );
 }

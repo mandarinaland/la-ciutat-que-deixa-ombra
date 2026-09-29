@@ -236,6 +236,8 @@ Detalls:
 - Àudio ambient: `AmbientProvider` viu al layout públic; el visitant l'activa una vegada (es recorda a la sessió) i continua entre vinyetes si és el mateix fitxer; si la vinyeta no en té, s'esvaeix.
 - `/auca/[obra]/[capítol]`, `/capitols`, `/capitols/[slug]` (redirigeix), `sitemap.xml` amb vinyetes i capítols.
 - `/admin/preview/[obra]/[[...segment]]` — la mateixa web amb esborranys, protegida per `requireAdmin()`.
+- Compartir: `opengraph-image.tsx` (portada, obra, vinyeta/capítol) genera un JPEG 1200×630 amb `next/og` + `sharp` (accepta fotos AVIF/WEBP). URL estable, a diferència de les URLs signades de Storage. Fonts a `src/assets/og` (OFL).
+- Dades estructurades: `CreativeWork` a la portada i `Photograph` a cada vinyeta (`lib/data/auca-meta.ts`).
 - Ordenar: `/admin/vignettes/ordre` i `/admin/chapters/ordre` (`SortableList`, dnd-kit). Els canvis són locals fins a «Desar l'ordre», que envia la llista completa en una sola crida transaccional; avís si es tanca la pàgina sense desar.
 - Revalidació: cada acció d'admin crida `touchContent()` → `updateTag('content')` + `revalidatePath('/', 'layout')`; la primera visita després de publicar ja veu el canvi.
 
@@ -255,8 +257,8 @@ Detalls:
 | 10 | Ordenar arrossegant (ratolí, dit, teclat, «moure a la posició») → `reorder_vignettes` / `reorder_chapters` | fet (15 proves E2E) |
 | 11 | Experiència pública: portada, recorregut (fotollibre per capítols), pàgines de capítol, sitemap | fet (37 proves E2E) |
 | 12 | Mode auca: lectura seqüencial, teclat, lliscar, precàrrega, veu, àudio ambient continu, vídeo, previsualització amb esborranys | fet |
-| 13 | Responsive | |
-| 14 | SEO: metadata, OG per vinyeta, sitemap, robots, canonical | |
+| 13 | Responsive: web pública (320–1440 px) i admin amb menú plegable al mòbil | fet |
+| 14 | SEO: metadades, imatge per compartir generada per vinyeta/capítol/portada, JSON-LD, sitemap, robots, canonical | fet (40 proves E2E públiques) |
 | 15 | Performance: cache, preload, dynamic imports | |
 | 16 | Seguretat: CSP, auditoria RLS, `get_advisors` de Supabase | |
 | 17 | Deploy a Vercel + domini | |
