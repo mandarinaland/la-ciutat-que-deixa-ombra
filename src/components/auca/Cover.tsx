@@ -33,31 +33,37 @@ export function Cover({ landing, hrefs }: { landing: Landing; hrefs: AucaHrefs }
         </div>
       ) : null}
 
-      <div className="relative mx-auto grid w-full max-w-7xl gap-8 px-6 pb-16 pt-32 sm:px-10 sm:pb-20">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:gap-x-16">
-          <div className="grid content-end gap-8 lg:col-start-1 lg:row-start-1">
-            <p className="font-mono text-[11px] uppercase tracking-[var(--tracking-title)] text-smoke">
-              Auca{total > 0 ? ` · ${total} vinyetes` : ""}
+      <div className="relative mx-auto grid w-full max-w-6xl gap-8 px-6 pb-16 pt-32 sm:px-10 sm:pb-20">
+        <p className="font-mono text-[11px] uppercase tracking-[var(--tracking-title)] text-smoke">
+          Auca{total > 0 ? ` · ${total} vinyetes` : ""}
+        </p>
+        <h1 className="max-w-4xl text-[2.6rem] leading-[0.95] uppercase tracking-[0.08em] text-balance sm:text-7xl lg:text-8xl">
+          {work.title}
+        </h1>
+
+        {/* El títol queda com sempre; l'aforisme ocupa l'espai buit de la dreta, sota el títol (pantalles grans). */}
+        <div className="relative grid gap-8">
+          {work.subtitle ? (
+            <p className={`text-xl italic text-paper/80 sm:text-2xl ${quote ? "lg:pr-[25rem]" : ""}`}>{work.subtitle}</p>
+          ) : null}
+          {work.intro_text ? (
+            <p
+              className={`max-w-2xl whitespace-pre-line text-lg leading-relaxed text-paper/85 sm:text-xl ${quote ? "lg:max-w-[calc(100%-25rem)]" : ""}`}
+            >
+              {work.intro_text}
             </p>
-            <h1 className="max-w-4xl text-[2.6rem] leading-[0.95] uppercase tracking-[0.08em] text-balance sm:text-7xl xl:text-8xl">
-              {work.title}
-            </h1>
-            {work.subtitle ? <p className="text-xl italic text-paper/80 sm:text-2xl">{work.subtitle}</p> : null}
-            {work.intro_text ? (
-              <p className="max-w-2xl whitespace-pre-line text-lg leading-relaxed text-paper/85 sm:text-xl">{work.intro_text}</p>
-            ) : null}
-          </div>
+          ) : null}
 
           {quote ? (
-            <blockquote className="grid content-end gap-4 border-l border-paper/30 pl-6 sm:pl-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-end lg:pb-2">
-              {quote.heading ? <p className="text-xl italic leading-snug text-paper sm:text-2xl">{quote.heading}</p> : null}
+            <blockquote className="grid gap-3 border-l border-paper/30 pl-6 lg:absolute lg:right-0 lg:top-1 lg:w-[22rem] xl:w-[24rem]">
+              {quote.heading ? <p className="text-xl italic leading-snug text-paper">{quote.heading}</p> : null}
               {quote.body ? (
-                <p className="whitespace-pre-line text-lg leading-relaxed text-paper/85 sm:text-xl sm:leading-relaxed">{quote.body}</p>
+                <p className="whitespace-pre-line text-justify text-lg leading-relaxed text-paper/85 hyphens-auto">{quote.body}</p>
               ) : null}
             </blockquote>
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-4 pt-2 lg:col-start-1 lg:row-start-2">
+          <div className="flex flex-wrap items-center gap-4 pt-2">
             {total > 0 ? (
               <Link
                 href={hrefs.vignette(1)}
