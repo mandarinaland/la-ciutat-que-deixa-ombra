@@ -43,9 +43,11 @@
 | Auth | Supabase Auth amb `@supabase/ssr` (cookies) | Sessió llegible des del servidor, sense tokens a `localStorage`. |
 | Permisos | RLS + funció `is_admin()` + comprovació al servidor (`requireAdmin()`) | Doble barrera: el frontend mai no decideix res. |
 | Escriptures admin | Server Actions amb el client de **sessió** (RLS s'aplica) | La service role no es fa servir per a CRUD normal. |
-| Service role | Només a `src/lib/supabase/admin.ts` amb `import "server-only"` | Si algú l'importa des del client, el build falla. |
-| Buckets | **Privats**. El servidor emet URLs signades només per a media publicat | Els esborranys no són accessibles encara que se n'endevini el camí. |
-| URLs signades | Caducitat alineada a finestres fixes (p. ex. 7 dies) | La mateixa URL durant la finestra → cache de `next/image` i CDN estable. |
+| Service role | Només a `src/lib/supabase/admin.ts` amb `import "server-only"`; cap flux normal la necessita | Si algú l'importa des del client, el build falla. |
+| Funcions de permisos | Esquema `private` (no exposat per l'API REST) | Les polítiques les fan servir, però ningú no les pot cridar via `/rest/v1/rpc`. |
+| Buckets | **Privats**. Política de Storage: `anon` només pot signar objectes de contingut publicat | Els esborranys no són accessibles encara que se n'endevini el camí; no cal service role per servir media. |
+| URLs signades | Vàlides 7 dies, reutilitzades 6 dies (`unstable_cache`, etiqueta `media-urls`) | La mateixa URL durant la finestra → cache de `next/image` i CDN estable. Els resultats incomplets no es cachegen. |
+| Lectura pública | Client anònim **sense cookies** (`lib/supabase/public.ts`) | Les pàgines públiques poden ser estàtiques/ISR; `proxy.ts` només s'executa a `/admin`. |
 | Pujades | Directes navegador → Supabase amb *signed upload URL* | Evita el límit de 4,5 MB del cos de les Functions de Vercel; permet progrés i cancel·lació. |
 | Límits | Límit dur al bucket (`file_size_limit`, `allowed_mime_types`) + límits configurables a `site_settings` validats al servidor | Mai pujades il·limitades. |
 | Vídeo | Columna `provider` a `media` + `resolveMediaSource()` | Avui Supabase; demà Mux/Cloudflare Stream sense tocar els components. |
@@ -63,10 +65,11 @@ la-ciutat-que-deixa-ombra/
 ├── supabase/
 │   ├── config.toml              # Supabase CLI (local)
 │   ├── migrations/              # SQL versionat: la BD es reconstrueix d'aquí
-│   │   ├── 0001_schema.sql
-│   │   ├── 0002_rls.sql
-│   │   ├── 0003_storage.sql
-│   │   └── 0004_seed_work.sql   # obra inicial + 9 capítols (sense dades falses)
+│   │   ├── 20260929000100_schema.sql
+│   │   ├── 20260929000200_security.sql   # esquema private, vistes, RLS, permisos
+│   │   ├── 20260929000300_storage.sql
+│   │   └── 20260929000400_initial_work.sql  # obra + 9 capítols (esborrany)
+│   ├── tests/rls_smoke.sql      # 38 comprovacions de permisos (npm run db:test)
 │   └── seed.sql                 # només per a entorn local
 ├── src/
 │   ├── proxy.ts                 # (Next 16 = antic middleware) sessió + /admin
@@ -158,10 +161,14 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 
 ### Vistes i funcions
 
-- `is_admin()` — `security definer`, `stable`; base de totes les polítiques.
+- `private.is_admin()`, `private.is_owner()` — `security definer`, `stable`; base de totes les polítiques.
+- `private.is_work_public()`, `is_vignette_public()`, `is_media_public()`, `is_storage_object_public()`.
+- `preview_vignettes` — com `public_vignettes` però amb esborranys (només admin).
+- `media_with_usage` — cada fitxer amb `usage_count` i `cover_count` (mediateca).
+- Triggers: `order_index` automàtic al final, `published_at` en publicar, coherència rol ↔ tipus de fitxer, protecció de l'últim `owner`.
 - `public_vignettes` (`security_invoker`) — vinyetes publicades d'obres publicades amb
   `number = row_number() over (partition by work_id order by order_index)` i `total`.
-- `reorder_vignettes(work_id, ids uuid[])` — reescriu `order_index` en una sola transacció.
+- `reorder_vignettes(work_id, ids uuid[])` i `reorder_chapters(...)` — reescriuen `order_index` en una sola transacció (restriccions úniques diferibles) i rebutgen llistes incompletes.
 - Trigger `set_updated_at` a totes les taules amb `updated_at`.
 
 ### RLS (resum)
@@ -171,8 +178,9 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 | works, chapters | `select` si `status = 'published'` | tot |
 | vignettes | `select` si publicada **i** l'obra publicada | tot |
 | media, vignette_media | `select` només si vinculat a una vinyeta publicada o és portada d'una obra publicada | tot |
+| projects | `select` si té alguna obra publicada | tot |
 | admins, site_settings | cap (settings públics via funció) | tot (`owner` per gestionar admins) |
-| storage.objects | cap accés directe | `insert/update/delete/select` |
+| storage.objects | `select` (= poder signar) només d'objectes de contingut publicat | `insert/update/delete/select` |
 
 ---
 
@@ -183,7 +191,7 @@ admins (user_id → auth.users)       site_settings (key → jsonb)
 1. Vercel CDN: si la pàgina és a la cache (ISR), es serveix directament.
 2. Si no, Server Component → `createServerClient` amb **anon key** → Postgres amb RLS
    (només veu contingut publicat) → consulta la vinyeta 23 a `public_vignettes`.
-3. El servidor demana URLs signades per als fitxers d'aquesta vinyeta (i la imatge de la 24 per al *preload*).
+3. El servidor obté URLs signades (cachejades) per als fitxers d'aquesta vinyeta i la imatge de la 24 per al *preload*, amb el mateix client anònim: Storage només ho permet per a contingut publicat.
 4. `next/image` optimitza la fotografia (AVIF/WebP, mida segons `sizes`) a la CDN de Vercel.
 5. Àudio i vídeo es reprodueixen directament des de Supabase Storage (HTTP Range) — mai passen per Vercel.
 6. Publicar/editar des de l'admin crida `revalidateTag()` → la següent visita regenera la pàgina.

@@ -1,16 +1,26 @@
 import type { Metadata } from "next";
+import { LoginForm } from "@/components/admin/LoginForm";
 
 export const metadata: Metadata = { title: "Accés" };
 
-/** FASE 3: formulari de Supabase Auth (email + contrasenya) amb Server Action. */
-export default function LoginPage() {
+type Props = { searchParams: Promise<{ next?: string | string[] }> };
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { next } = await searchParams;
+  const target = typeof next === "string" ? next : "/admin/dashboard";
+
   return (
     <main id="contingut" className="flex min-h-dvh items-center justify-center px-6">
-      <div className="w-full max-w-sm border border-line p-8">
-        <h1 className="mb-2 text-2xl">Accés</h1>
-        <p className="font-mono text-xs leading-relaxed text-smoke">
-          L&apos;autenticació amb Supabase s&apos;activa a la Fase 3.
+      <div className="w-full max-w-sm">
+        <p className="mb-10 text-center text-lg leading-tight">
+          La ciutat
+          <br />
+          que deixa ombra
         </p>
+        <div className="border border-line p-8">
+          <h1 className="mb-6 font-mono text-xs uppercase tracking-[var(--tracking-title)] text-smoke">Administració</h1>
+          <LoginForm next={target} />
+        </div>
       </div>
     </main>
   );

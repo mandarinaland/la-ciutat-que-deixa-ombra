@@ -1,0 +1,2 @@
+-- Dades només per a desenvolupament local (supabase db reset).
+-- L'obra inicial i els capítols ja es creen a les migracions.

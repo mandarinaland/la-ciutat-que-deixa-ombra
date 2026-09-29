@@ -1,22 +1,47 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/proxy";
 
 /**
- * Next.js 16: `proxy.ts` substitueix l'antic `middleware.ts`.
+ * Next.js 16: `proxy.ts` (abans `middleware.ts`).
  *
- * FASE 1 (ara): mentre no hi hagi autenticació, /admin no existeix a Vercel Production.
- *               A localhost i a Preview es pot navegar per veure l'estructura (no conté dades).
- * FASE 3:       aquí es refrescarà la sessió de Supabase i es redirigirà a /admin/login.
+ * Només s'executa a /admin: la part pública no llegeix sessions i així
+ * es pot servir des de la cache de Vercel sense cap cost per petició.
+ *
+ * Aquesta és la primera barrera (redirigir si no hi ha sessió).
+ * La decisió real — és administrador? — es pren al servidor (requireAdmin)
+ * i a PostgreSQL (RLS). Mai només aquí.
  */
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+  const { response, userId, configured } = await updateSession(request);
 
-  if (pathname.startsWith("/admin") && process.env.VERCEL_ENV === "production") {
-    return new NextResponse(null, { status: 404 });
+  // Sense Supabase configurat, l'administració es tanca (fail closed).
+  if (!configured) {
+    return new NextResponse("Administració no disponible: falta configurar Supabase.", { status: 503 });
   }
 
-  return NextResponse.next();
+  const isLogin = pathname === "/admin/login";
+
+  if (!userId && !isLogin) {
+    const login = request.nextUrl.clone();
+    login.pathname = "/admin/login";
+    login.search = "";
+    login.searchParams.set("next", `${pathname}${search}`);
+    return NextResponse.redirect(login);
+  }
+
+  if (userId && isLogin) {
+    const dashboard = request.nextUrl.clone();
+    dashboard.pathname = "/admin/dashboard";
+    dashboard.search = "";
+    return NextResponse.redirect(dashboard);
+  }
+
+  // No cachejar mai respostes d'administració.
+  response.headers.set("Cache-Control", "private, no-store");
+  return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*"],
 };
