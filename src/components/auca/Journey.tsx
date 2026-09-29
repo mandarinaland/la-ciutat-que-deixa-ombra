@@ -24,7 +24,7 @@ export function Journey({
       {sections.map((s, i) => (
         <section key={`${s.chapter?.slug ?? "solta"}-${i}`} aria-labelledby={`sec-${i}`}
           // Amb centenars de vinyetes, el navegador no pinta els capítols que encara no són a la vista.
-          className={`grid gap-10 ${i > 0 ? "[content-visibility:auto] [contain-intrinsic-size:auto_900px]" : ""}`}
+          className={`grid gap-10 ${i > 0 ? "[content-visibility:auto] [contain-intrinsic-block-size:auto_900px]" : ""}`}
         >
           <ChapterHeading section={s} id={`sec-${i}`} hrefs={hrefs} link={showChapterLinks} />
           <Gallery items={s.items} total={total} hrefs={hrefs} />

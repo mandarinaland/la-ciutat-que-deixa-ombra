@@ -45,6 +45,7 @@ type WorkRow = Timestamps & {
   credit_photography: string | null;
   credit_text_voice: string | null;
   cover_media_id: string | null;
+  intro_audio_media_id: string | null;
   status: Database["public"]["Enums"]["publish_status"];
   order_index: number;
   published_at: string | null;
@@ -141,6 +142,13 @@ export type Database = {
           {
             foreignKeyName: "works_cover_media_id_fkey";
             columns: ["cover_media_id"];
+            isOneToOne: false;
+            referencedRelation: "media";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "works_intro_audio_media_id_fkey";
+            columns: ["intro_audio_media_id"];
             isOneToOne: false;
             referencedRelation: "media";
             referencedColumns: ["id"];

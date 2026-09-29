@@ -15,16 +15,16 @@ export const metadata: Metadata = { title: "Obra" };
 export default async function WorkAdminPage() {
   const [works, current, admin, limits] = await Promise.all([listWorks(), getCurrentWork(), getCurrentAdmin(), getUploadLimits()]);
 
-  // Portada de l'obra
-  let cover = null;
-  if (current?.cover_media_id) {
+  // Portada i poema de l'obra
+  const slotFor = async (mediaId: string | null | undefined) => {
+    if (!mediaId) return null;
     const supabase = await createSupabaseServerClient();
-    const { data: m } = await supabase.from("media").select(MEDIA_FIELDS).eq("id", current.cover_media_id).maybeSingle();
-    if (m) {
-      const src = (await resolveMediaSources([m], "admin")).get(m.id);
-      cover = { media: m, url: src?.url ?? null, stable: src?.kind === "file" ? src.stable !== false : true };
-    }
-  }
+    const { data: m } = await supabase.from("media").select(MEDIA_FIELDS).eq("id", mediaId).maybeSingle();
+    if (!m) return null;
+    const src = (await resolveMediaSources([m], "admin")).get(m.id);
+    return { media: m, url: src?.url ?? null, stable: src?.kind === "file" ? src.stable !== false : true };
+  };
+  const [cover, poem] = await Promise.all([slotFor(current?.cover_media_id), slotFor(current?.intro_audio_media_id)]);
 
   return (
     <section className="flex flex-col gap-12">
@@ -36,13 +36,28 @@ export default async function WorkAdminPage() {
       {current ? (
         <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-start">
           <WorkForm key={current.id} work={current} />
-          <MediaSlot
-            title="Imatge de portada"
-            kind="image"
-            target={{ type: "cover", workId: current.id }}
-            current={cover}
-            limits={limits}
-          />
+          <div className="grid gap-10">
+            <MediaSlot
+              title="Imatge de portada"
+              kind="image"
+              target={{ type: "cover", workId: current.id }}
+              current={cover}
+              limits={limits}
+            />
+            <div className="grid gap-2">
+              <MediaSlot
+                title="Poema de la portada (àudio)"
+                kind="audio"
+                target={{ type: "poem", workId: current.id }}
+                current={poem}
+                limits={limits}
+              />
+              <p className="font-mono text-[11px] leading-relaxed text-smoke">
+                Sona de fons a la pàgina d&apos;inici: comença en entrar o, si el navegador ho bloqueja, al primer toc. El
+                visitant el pot pausar sempre.
+              </p>
+            </div>
+          </div>
         </div>
       ) : null}
 

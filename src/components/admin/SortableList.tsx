@@ -126,7 +126,7 @@ export function SortableList({
 
   return (
     <div className="grid gap-4">
-      <div className="sticky top-0 z-20 -mx-2 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-ink/95 px-2 py-3 backdrop-blur">
+      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-ink/95 px-2 py-3 backdrop-blur">
         <p className="font-mono text-[11px] uppercase tracking-widest text-smoke" aria-live="polite">
           {dirty
             ? `${moved.size} ${moved.size === 1 ? noun.one : noun.many} canviarien de lloc · sense desar`
@@ -162,7 +162,7 @@ export function SortableList({
         }}
       >
         <SortableContext items={rows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
-          <ol className="grid gap-1" aria-label={`Ordre de les ${noun.many}`}>
+          <ol className="grid grid-cols-[minmax(0,1fr)] gap-1" aria-label={`Ordre de les ${noun.many}`}>
             {rows.map((r, i) => (
               <Row key={r.id} row={r} index={i} total={rows.length} moved={moved.has(r.id)} onMoveTo={moveTo} />
             ))}
@@ -194,7 +194,7 @@ function Row({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={`flex items-center gap-3 border px-2 py-2 ${
+      className={`flex min-w-0 items-center gap-2 border px-2 py-2 sm:gap-3 ${
         isDragging ? "relative z-10 border-paper bg-ink-soft shadow-2xl" : moved ? "border-ember/50 bg-ink-soft/60" : "border-line bg-ink"
       }`}
     >
@@ -210,7 +210,7 @@ function Row({
           {[2, 8, 14].flatMap((y) => [<circle key={`a${y}`} cx="2" cy={y} r="1.4" />, <circle key={`b${y}`} cx="8" cy={y} r="1.4" />])}
         </svg>
       </button>
-      <span className="w-12 shrink-0 font-mono text-sm tabular-nums text-smoke">{String(index + 1).padStart(pad, "0")}</span>
+      <span className="w-8 shrink-0 font-mono text-sm tabular-nums text-smoke sm:w-12">{String(index + 1).padStart(pad, "0")}</span>
       {row.thumb !== undefined ? (
         <span className="relative h-12 w-12 shrink-0 overflow-hidden bg-ink-soft">
           {row.thumb ? (

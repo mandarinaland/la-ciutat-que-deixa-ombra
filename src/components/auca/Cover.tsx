@@ -37,7 +37,7 @@ export function Cover({ landing, hrefs }: { landing: Landing; hrefs: AucaHrefs }
         <p className="font-mono text-[11px] uppercase tracking-[var(--tracking-title)] text-smoke">
           Auca{total > 0 ? ` · ${total} vinyetes` : ""}
         </p>
-        <h1 className="max-w-4xl text-[2.6rem] leading-[0.95] uppercase tracking-[0.08em] text-balance sm:text-7xl lg:text-8xl">
+        <h1 className="max-w-4xl text-[2.2rem] leading-[0.95] uppercase tracking-[0.08em] text-balance sm:text-6xl lg:text-7xl">
           {work.title}
         </h1>
 

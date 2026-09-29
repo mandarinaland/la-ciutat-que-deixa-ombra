@@ -4,6 +4,7 @@ import { preload } from "react-dom";
 import type { AucaHrefs, ChapterView, Landing, ReaderVignette } from "@/lib/data/auca";
 import { formatVignetteNumber } from "@/lib/routing";
 import { Cover } from "./Cover";
+import { IntroPoem } from "./IntroPoem";
 import { Journey } from "./Journey";
 import { Reader } from "./Reader";
 
@@ -23,6 +24,7 @@ export function LandingView({ landing, hrefs }: { landing: Landing; hrefs: AucaH
         <span id="contingut" />
       )}
       <Colophon work={landing.work} />
+      {landing.poem ? <IntroPoem poem={landing.poem} /> : null}
     </>
   );
 }

@@ -233,6 +233,8 @@ Detalls:
 - `lib/data/auca.ts` — una sola capa de dades amb dos modes: `public` (client anònim + `unstable_cache`, etiqueta `content`) i `preview` (sessió d'admin, inclou esborranys, sense cache). Els components són els mateixos.
 - `/` — portada (foto de portada, títol, subtítol, frase d'entrada, crèdits) + **recorregut**: totes les vinyetes publicades en ordre de lectura, agrupades per capítols i compostes en files justificades segons la proporció de cada foto. Una vinyeta en un capítol no publicat surt sense capçalera de capítol.
 - `/auca/[obra]/[n]` — lector: foto a pantalla, text de Piath, veu (només en clicar), vídeo opcional, ← → / Esc / lliscar, barra de progrés, precàrrega només de la foto següent.
+- Poema de la portada (`works.intro_audio_media_id`, Admin → Obra): `IntroPoem` intenta sonar en entrar; si el navegador ho bloqueja, comença al primer toc/clic/tecla (no si és un enllaç a una altra pàgina). Control fix per pausar; si es pausa o s'acaba, no torna a començar sol durant la sessió. S'atura en sortir de la portada.
+- Aforisme de la portada (`works.hero_quote`): primera línia = encapçalament; es mostra justificat a la dreta, sota el títol.
 - Àudio ambient: `AmbientProvider` viu al layout públic; el visitant l'activa una vegada (es recorda a la sessió) i continua entre vinyetes si és el mateix fitxer; si la vinyeta no en té, s'esvaeix.
 - `/auca/[obra]/[capítol]`, `/capitols`, `/capitols/[slug]` (redirigeix), `sitemap.xml` amb vinyetes i capítols.
 - `/admin/preview/[obra]/[[...segment]]` — la mateixa web amb esborranys, protegida per `requireAdmin()`.

@@ -11,7 +11,7 @@
 | Regió | `eu-west-3` (París) |
 | URL | `https://rgklovopctwgmlbjspxr.supabase.co` |
 | Clau pública | `sb_publishable_tPB8f2Km8A-O0Y74Zzo1YQ_cdo31pLH` |
-| Migracions aplicades | `20260929015505_schema` · `…015540_security` · `…015551_storage` · `…015559_initial_work` · `…015743_performance` |
+| Migracions aplicades | `20260929015505_schema` · `…015540_security` · `…015551_storage` · `…015559_initial_work` · `…015743_performance` · `…210952_hero_quote` · `…214632_intro_poem` |
 | Buckets | `images`, `audio`, `video` (privats) |
 | Security Advisor | 1 avís: *Leaked password protection* (opció d'Auth; vegeu la llista) |
 | Performance Advisor | només índexs encara no usats (BD buida); es mantenen |
@@ -59,4 +59,4 @@ curl -X POST https://www.deixaombra.art/api/revalidate -H "Authorization: Bearer
 
 ## Proves automàtiques (stack local)
 
-111 comprovacions de navegador: admin (25), mediateca i pujades (31), web pública i compartir (40), ordenar (15). A més, 38 proves de RLS en SQL (`supabase/tests/rls_smoke.sql`).
+125 comprovacions de navegador: admin (25), mediateca i pujades (31), web pública i compartir (41), ordenar (15), poema de la portada (13). A més, 38 proves de RLS en SQL (`supabase/tests/rls_smoke.sql`).

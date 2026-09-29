@@ -43,6 +43,7 @@ const targetSchema = z
   .discriminatedUnion("type", [
     z.object({ type: z.literal("vignette"), vignetteId: uuid, role: roleSchema }),
     z.object({ type: z.literal("cover"), workId: uuid }),
+    z.object({ type: z.literal("poem"), workId: uuid }),
   ])
   .optional();
 
@@ -164,6 +165,13 @@ async function attach(mediaId: string, target: NonNullable<AttachTarget>): Promi
     return error ? { ok: false, error: describeDbError(error) } : { ok: true };
   }
 
+  if (target.type === "poem") {
+    const { data: m } = await supabase.from("media").select("media_type").eq("id", mediaId).maybeSingle();
+    if (m?.media_type !== "audio") return { ok: false, error: "El poema ha de ser un fitxer d'àudio." };
+    const { error } = await supabase.from("works").update({ intro_audio_media_id: mediaId }).eq("id", target.workId);
+    return error ? { ok: false, error: describeDbError(error) } : { ok: true };
+  }
+
   // Rols únics: el nou fitxer substitueix l'anterior (que continua a la mediateca).
   if (SINGLE_ROLES.has(target.role)) {
     const { error: delError } = await supabase
@@ -211,8 +219,9 @@ export async function detachMediaAction(target: NonNullable<AttachTarget>, media
   if (!t.success || !t.data) return { ok: false, error: "Dades no vàlides." };
   const supabase = await createSupabaseServerClient();
 
-  if (t.data.type === "cover") {
-    const { error } = await supabase.from("works").update({ cover_media_id: null }).eq("id", t.data.workId);
+  if (t.data.type === "cover" || t.data.type === "poem") {
+    const patch = t.data.type === "cover" ? { cover_media_id: null } : { intro_audio_media_id: null };
+    const { error } = await supabase.from("works").update(patch).eq("id", t.data.workId);
     if (error) return { ok: false, error: describeDbError(error) };
   } else {
     let q = supabase.from("vignette_media").delete().eq("vignette_id", t.data.vignetteId).eq("role", t.data.role);

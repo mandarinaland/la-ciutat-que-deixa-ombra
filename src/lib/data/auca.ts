@@ -55,13 +55,13 @@ export function hrefsFor(mode: AucaMode, workSlug: string): AucaHrefs {
 
 type WorkRow = Pick<
   Tables<"works">,
-  "id" | "slug" | "title" | "subtitle" | "intro_text" | "hero_quote" | "description" | "credit_photography" | "credit_text_voice" | "cover_media_id" | "status" | "updated_at"
+  "id" | "slug" | "title" | "subtitle" | "intro_text" | "hero_quote" | "description" | "credit_photography" | "credit_text_voice" | "cover_media_id" | "intro_audio_media_id" | "status" | "updated_at"
 >;
 type ChapterRow = Pick<Tables<"chapters">, "id" | "slug" | "title" | "description" | "order_index" | "status">;
 type IndexRow = Pick<VignetteRow, "id" | "number" | "total" | "title" | "chapter_id" | "piath_text" | "status">;
 
 const WORK_FIELDS =
-  "id, slug, title, subtitle, intro_text, hero_quote, description, credit_photography, credit_text_voice, cover_media_id, status, updated_at";
+  "id, slug, title, subtitle, intro_text, hero_quote, description, credit_photography, credit_text_voice, cover_media_id, intro_audio_media_id, status, updated_at";
 
 async function qWork(db: Client, slug: string, mode: AucaMode): Promise<WorkRow | null> {
   let q = db.from("works").select(WORK_FIELDS).eq("slug", slug);
@@ -131,7 +131,7 @@ async function qLinks(db: Client, vignetteId: string): Promise<MediaLink[]> {
 // Versions públiques cachejades (etiqueta `content`: qualsevol canvi a l'admin les invalida).
 const CACHE = { tags: [CONTENT_TAG], revalidate: 3600 };
 const pub = () => createPublicClient();
-const cWork = unstable_cache((slug: string) => qWork(pub(), slug, "public"), ["auca-work-v2"], CACHE);
+const cWork = unstable_cache((slug: string) => qWork(pub(), slug, "public"), ["auca-work-v3"], CACHE);
 const cMedia = unstable_cache((id: string) => qMedia(pub(), id), ["auca-media-v1"], CACHE);
 const cChapters = unstable_cache((workId: string) => qChapters(pub(), workId, "public"), ["auca-chapters-v1"], CACHE);
 const cIndex = unstable_cache((workId: string) => qIndex(pub(), workId, "public"), ["auca-index-v1"], CACHE);
@@ -214,7 +214,7 @@ export function roman(n: number): string {
 
 // ── Portada + recorregut ───────────────────────────────────────────────────────
 
-export type AucaWork = Omit<WorkRow, "cover_media_id">;
+export type AucaWork = Omit<WorkRow, "cover_media_id" | "intro_audio_media_id">;
 
 export type JourneyItem = {
   number: number;
@@ -232,6 +232,8 @@ export type JourneySection = {
 export type Landing = {
   work: AucaWork;
   cover: AucaImage | null;
+  /** Poema de la portada (àudio de fons). */
+  poem: AucaFile | null;
   total: number;
   sections: JourneySection[];
 };
@@ -241,14 +243,15 @@ export async function loadLanding(mode: AucaMode, workSlug: string): Promise<Lan
   const work = await src.work(workSlug);
   if (!work) return null;
 
-  const [coverMedia, chapters, index, mainImages] = await Promise.all([
+  const [coverMedia, poemMedia, chapters, index, mainImages] = await Promise.all([
     work.cover_media_id ? src.media(work.cover_media_id) : Promise.resolve(null),
+    work.intro_audio_media_id ? src.media(work.intro_audio_media_id) : Promise.resolve(null),
     src.chapters(work.id),
     src.index(work.id),
     src.mainImages(work.id),
   ]);
 
-  const media = [coverMedia, ...index.map((v) => mainImages[v.id] ?? null)].filter((m): m is MediaItem => Boolean(m));
+  const media = [coverMedia, poemMedia, ...index.map((v) => mainImages[v.id] ?? null)].filter((m): m is MediaItem => Boolean(m));
   const sources = await resolveMediaSources(media, mode === "preview" ? "admin" : "public");
 
   const toItem = (v: IndexRow): JourneyItem => ({
@@ -280,11 +283,13 @@ export async function loadLanding(mode: AucaMode, workSlug: string): Promise<Lan
     }
   }
 
-  const { cover_media_id: _cover, ...rest } = work;
+  const { cover_media_id: _cover, intro_audio_media_id: _poem, ...rest } = work;
   void _cover;
+  void _poem;
   return {
     work: rest,
     cover: toImage(coverMedia, sources, work.title),
+    poem: toFile(poemMedia, sources),
     total: index.length,
     sections,
   };
@@ -385,8 +390,9 @@ export async function loadVignette(mode: AucaMode, workSlug: string, number: num
   const ci = v.chapter_id ? chapters.findIndex((c) => c.id === v.chapter_id) : -1;
   const chapter = ci >= 0 ? { slug: chapters[ci]!.slug, title: chapters[ci]!.title, numeral: roman(ci + 1) } : null;
 
-  const { cover_media_id: _cover, ...rest } = work;
+  const { cover_media_id: _cover, intro_audio_media_id: _poem, ...rest } = work;
   void _cover;
+  void _poem;
   return {
     work: rest,
     number: v.number,
