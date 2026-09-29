@@ -24,15 +24,23 @@
 | Producció | https://la-ciutat-que-deixa-ombra.vercel.app |
 | Regió de funcions | `cdg1` (París) — la mateixa que Supabase |
 | Protecció | Vercel Authentication només a les *previews*; producció pública |
-| Comprovació | `/api/health` → `{"app":"ok","supabase":"ok","serviceRole":"missing","env":"production"}` |
+| Comprovació | `/api/health` → `{"app":"ok","supabase":"ok","serviceRole":"configured","env":"production"}` |
 
 Variables configurades: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (clau publishable), `NEXT_PUBLIC_DEFAULT_WORK_SLUG`, `REVALIDATE_SECRET` (sensible).
 
-## Pendent (requereix el teu compte)
+## GitHub
 
-1. **`SUPABASE_SERVICE_ROLE_KEY`** — Supabase → Project Settings → API Keys → *secret key*. Afegeix-la a Vercel → Settings → Environment Variables (Production + Preview, tipus *Sensitive*) i torna a desplegar. Sense ella l'admin funciona, però les miniatures no s'optimitzen.
-2. **Autenticació** — Supabase → Authentication:
-   - *Sign In / Providers → Email*: desactiva **Allow new users to sign up**.
-   - *URL Configuration*: Site URL `https://la-ciutat-que-deixa-ombra.vercel.app`; Redirect URLs `http://localhost:3000/**`.
-3. ~~**Primer administrador**~~ — fet el 29/09/2026: `info@piath.cat` és `owner`. Nous administradors: afegir-los des de l'SQL Editor o (Fase 7) des de Configuració.
-4. **GitHub** — perquè `git push` desplegui sol: crea un repositori (privat) a GitHub, puja-hi aquest projecte i connecta'l a Vercel → Project → Settings → Git. A partir d'aquí, cada push a `main` = producció i cada branca = preview.
+| | |
+|---|---|
+| Repositori | https://github.com/mandarinaland/la-ciutat-que-deixa-ombra (privat) |
+| Branca de producció | `main` |
+
+## Estat de la configuració
+
+- [x] Supabase: projecte, migracions, buckets, RLS (38/38 proves)
+- [x] Vercel: projecte, variables, regió `cdg1`
+- [x] `SUPABASE_SERVICE_ROLE_KEY` a Vercel (`/api/health` → `serviceRole: configured`)
+- [x] Primer administrador: `info@piath.cat` (`owner`)
+- [x] Codi a GitHub; producció desplegada des del commit `60d572a`
+- [ ] Vercel → Settings → Git → **Connect Git Repository** (perquè cada `git push` desplegui sol)
+- [ ] Supabase → Authentication → desactivar **Allow new users to sign up** i posar el Site URL de producció
