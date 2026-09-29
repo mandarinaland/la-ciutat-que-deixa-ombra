@@ -83,16 +83,17 @@ function ChapterHeading({
 }
 
 function Gallery({ items, total, hrefs }: { items: JourneyItem[]; total: number; hrefs: AucaHrefs }) {
+  // Mòbil: una foto per fila, a tota l'amplada. Des de 640 px: files justificades (mateixa alçada per fila).
   return (
-    <ol className="flex flex-wrap gap-x-4 gap-y-10 [--row:11rem] sm:[--row:14rem] lg:[--row:17rem]">
+    <ol className="grid gap-y-12 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-10 sm:[--row:14rem] lg:[--row:17rem]">
       {items.map((it) => {
         const ratio = it.image ? it.image.width / it.image.height : 1.5;
         return (
           <li
             key={it.number}
             id={`v-${it.number}`}
-            style={{ flexGrow: ratio, flexBasis: `calc(${ratio.toFixed(3)} * var(--row))` }}
-            className="min-w-0 scroll-mt-24"
+            style={{ ["--r" as string]: ratio.toFixed(3) }}
+            className="min-w-0 scroll-mt-24 sm:grow-[var(--r)] sm:basis-[calc(var(--r)*var(--row))]"
           >
             <Link href={hrefs.vignette(it.number)} className="group grid gap-3" prefetch={false}>
               <span className="relative block overflow-hidden bg-ink-soft" style={{ aspectRatio: `${ratio}` }}>
@@ -127,7 +128,7 @@ function Gallery({ items, total, hrefs }: { items: JourneyItem[]; total: number;
         );
       })}
       {/* Evita que l'última fila s'estiri fins a omplir tota l'amplada */}
-      <li aria-hidden className="grow-[10]" />
+      <li aria-hidden className="hidden sm:block sm:grow-[10]" />
     </ol>
   );
 }
