@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site";
 export const alt = siteConfig.name;
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 /** Targeta per compartir una vinyeta (o un capítol). */
 export default async function Image({ params }: { params: Promise<{ work: string; segment: string }> }) {
@@ -28,7 +28,7 @@ export default async function Image({ params }: { params: Promise<{ work: string
   }
   if (parsed.kind === "chapter") {
     const c = await loadChapter("public", work, parsed.slug);
-    if (c) return coverCard({ eyebrow: `Capítol ${c.chapter.numeral}`, title: c.chapter.title, subtitle: c.work.title, photo: c.items[0]?.image?.src });
+    if (c) return coverCard({ eyebrow: `Capítol ${c.chapter.numeral}`, title: c.chapter.title, subtitle: c.work.title, photos: [c.items[0]?.image?.src] });
   }
   return coverCard({ title: siteConfig.name, subtitle: siteConfig.tagline });
 }

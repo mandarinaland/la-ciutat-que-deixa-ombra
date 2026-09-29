@@ -31,14 +31,28 @@ function loadFonts() {
 async function photoDataUrl(src: string | null | undefined, width: number, height: number): Promise<string | null> {
   if (!src) return null;
   try {
-    const res = await fetch(src, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return null;
+    // no-store: la foto original pot passar de 2 MB i no s'ha de desar a la cache de dades.
+    const res = await fetch(src, { signal: AbortSignal.timeout(10000), cache: "no-store" });
+    if (!res.ok) {
+      console.error(`[og] Foto no disponible (${res.status})`);
+      return null;
+    }
     const input = Buffer.from(await res.arrayBuffer());
     const jpeg = await sharp(input).rotate().resize(width, height, { fit: "cover", position: "attention" }).jpeg({ quality: 82 }).toBuffer();
     return `data:image/jpeg;base64,${jpeg.toString("base64")}`;
-  } catch {
+  } catch (error) {
+    console.error("[og] No s'ha pogut preparar la foto", error);
     return null; // sense foto, la targeta és només tipogràfica
   }
+}
+
+/** Prova les fotos per ordre (p. ex. portada → primera vinyeta) i torna la primera que funciona. */
+async function firstPhoto(srcs: (string | null | undefined)[], width: number, height: number) {
+  for (const src of srcs) {
+    const img = await photoDataUrl(src, width, height);
+    if (img) return img;
+  }
+  return null;
 }
 
 async function render(node: React.ReactElement) {
@@ -46,36 +60,36 @@ async function render(node: React.ReactElement) {
   const png = await new ImageResponse(node, { ...OG_SIZE, fonts: await loadFonts() }).arrayBuffer();
   const jpeg = await sharp(Buffer.from(png)).jpeg({ quality: 84, mozjpeg: true }).toBuffer();
   return new Response(new Uint8Array(jpeg), {
-    headers: { "content-type": OG_CONTENT_TYPE, "cache-control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" },
+    headers: { "content-type": OG_CONTENT_TYPE, "cache-control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400" },
   });
 }
 
-/** Portada: foto a sang, títol a baix. */
-export async function coverCard({ title, subtitle, photo, eyebrow = "Auca" }: { title: string; subtitle?: string | null; photo?: string | null; eyebrow?: string }) {
-  const img = await photoDataUrl(photo, OG_SIZE.width, OG_SIZE.height);
+/** Portada / capítol: text a l'esquerra, la fotografia sencera i ben visible a la dreta. */
+export async function coverCard({
+  title,
+  subtitle,
+  photos,
+  eyebrow = "Auca",
+}: {
+  title: string;
+  subtitle?: string | null;
+  photos?: (string | null | undefined)[];
+  eyebrow?: string;
+}) {
+  const photoW = 640;
+  const img = await firstPhoto(photos ?? [], photoW, OG_SIZE.height);
+  const textW = img ? OG_SIZE.width - photoW : OG_SIZE.width;
+  const size = img ? (title.length > 18 ? 62 : 76) : title.length > 18 ? 84 : 100;
   return render(
-    <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: INK, color: PAPER }}>
-      {img ? <img src={img} width={OG_SIZE.width} height={OG_SIZE.height} style={{ position: "absolute", top: 0, left: 0, opacity: 0.75 }} alt="" /> : null}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: OG_SIZE.width,
-          height: OG_SIZE.height,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "64px 72px",
-          backgroundImage: `linear-gradient(to top, ${INK} 0%, rgba(13,13,12,0.6) 45%, rgba(13,13,12,0.05) 100%)`,
-        }}
-      >
-        <div style={{ fontFamily: "Plex", fontSize: 20, letterSpacing: 5, color: SMOKE, textTransform: "uppercase" }}>{eyebrow}</div>
-        <div style={{ display: "flex", maxWidth: 1000, fontFamily: "Garamond", fontSize: title.length > 18 ? 80 : 96, lineHeight: 1.02, letterSpacing: 5, textTransform: "uppercase", marginTop: 18 }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", background: INK, color: PAPER }}>
+      <div style={{ width: textW, height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "60px 56px" }}>
+        <div style={{ fontFamily: "Plex", fontSize: 18, letterSpacing: 5, color: SMOKE, textTransform: "uppercase" }}>{eyebrow}</div>
+        <div style={{ display: "flex", fontFamily: "Garamond", fontSize: size, lineHeight: 1.02, letterSpacing: 4, textTransform: "uppercase", marginTop: 18 }}>
           {title}
         </div>
-        {subtitle ? <div style={{ fontFamily: "Garamond", fontStyle: "italic", fontSize: 36, color: "rgba(235,230,221,0.85)", marginTop: 22 }}>{subtitle}</div> : null}
+        {subtitle ? <div style={{ fontFamily: "Garamond", fontStyle: "italic", fontSize: 32, lineHeight: 1.2, color: "rgba(235,230,221,0.85)", marginTop: 22 }}>{subtitle}</div> : null}
       </div>
+      {img ? <img src={img} width={photoW} height={OG_SIZE.height} alt="" /> : null}
     </div>,
   );
 }
@@ -97,7 +111,7 @@ export async function vignetteCard({
   photo?: string | null;
 }) {
   const photoW = 700;
-  const img = await photoDataUrl(photo, photoW, OG_SIZE.height);
+  const img = await firstPhoto([photo], photoW, OG_SIZE.height);
   const line = text ? (text.length > 150 ? `${text.slice(0, 147).trimEnd()}…` : text) : "";
   return render(
     <div style={{ width: "100%", height: "100%", display: "flex", background: INK, color: PAPER }}>
