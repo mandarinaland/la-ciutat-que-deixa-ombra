@@ -1,0 +1,70 @@
+# dependències
+/node_modules
+/.pnp
+.pnp.*
+
+# Next.js / build
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# Entorn — MAI no pujar secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# Fitxers multimèdia locals: viuen a Supabase Storage, no a Git
+/media/
+/uploads/
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.png
+*.webp
+*.avif
+*.tif
+*.tiff
+*.heic
+*.raw
+*.cr2
+*.nef
+*.mp3
+*.wav
+*.m4a
+*.ogg
+*.aif
+*.aiff
+*.mp4
+*.mov
+*.webm
+*.mkv
+# excepcions: icones de l'app
+!/src/app/icon.png
+!/src/app/apple-icon.png
+!/public/**/*.png
+
+# logs i temporals
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+coverage/

@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de l'obra. Paleta de cambra fosca: tinta, paper, ombra.
+ * Contrast: paper (#ebe6dd) sobre tinta (#0d0d0c) ≈ 16:1 · fum (#9a948a) sobre tinta ≈ 6.6:1 (AA).
+ */
+@theme {
+  --color-ink: #0d0d0c;
+  --color-ink-soft: #161614;
+  --color-paper: #ebe6dd;
+  --color-smoke: #9a948a;
+  --color-line: #2a2926;
+  --color-ember: #c9a36b;
+
+  --font-serif: var(--font-garamond), Georgia, serif;
+  --font-mono: var(--font-plex), ui-monospace, monospace;
+
+  --tracking-title: 0.18em;
+  --ease-shadow: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-ink text-paper font-serif antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern", "liga", "onum";
+  }
+  ::selection {
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-paper);
+    outline-offset: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
