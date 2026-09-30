@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { siteConfig } from "@/lib/site";
 import { getImageProps } from "next/image";
 import { preload } from "react-dom";
 import type { AucaHrefs, ChapterView, Landing, ReaderVignette } from "@/lib/data/auca";
@@ -81,6 +82,13 @@ function Colophon({ work }: { work: Landing["work"] }) {
       <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-4 px-5 py-10 font-mono text-[11px] uppercase tracking-[0.2em] text-smoke sm:px-10">
         <span>{work.title}</span>
         {credits.length ? <span>{credits.join(" · ")}</span> : null}
+        <nav aria-label="Altres projectes de Piath" className="flex w-full flex-wrap gap-x-6 gap-y-2 pt-2 text-[10px] text-smoke/70">
+          {siteConfig.links.map((l) => (
+            <a key={l.href} href={l.href} target="_blank" rel="noopener" className="hover:text-paper">
+              {l.label} ↗
+            </a>
+          ))}
+        </nav>
       </div>
     </footer>
   );

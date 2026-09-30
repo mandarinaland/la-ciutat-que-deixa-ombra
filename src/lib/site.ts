@@ -10,6 +10,12 @@ export const siteConfig = {
   tagline: "Auca de David Teulats · Veu de Piath",
   locale: "ca_ES",
   lang: "ca",
+  /** Enllaços discrets al peu de la web (altres projectes de Piath). */
+  links: [
+    { label: "La revista dels Xiuxiuejos de Piath", href: "https://piath.cat" },
+    { label: "ARCA", href: "https://arca.chat" },
+    { label: "RZO", href: "https://rzonodes.xyz" },
+  ],
 } as const;
 
 /**

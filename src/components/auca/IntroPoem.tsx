@@ -109,7 +109,7 @@ export function IntroPoem({ poem, label = "Vic · poema en veu de Piath" }: { po
   return (
     <div
       data-poem-control
-      className="fixed bottom-4 right-4 z-30 flex max-w-[calc(100vw-2rem)] items-center gap-3 border border-paper/25 bg-ink/85 py-2 pl-2 pr-4 backdrop-blur sm:bottom-6 sm:right-6"
+      className="fixed right-4 top-4 z-30 flex max-w-[calc(100vw-2rem)] items-center gap-3 border border-paper/25 bg-ink/85 py-2 pl-2 pr-4 backdrop-blur sm:right-6 sm:top-6"
     >
       <button
         type="button"
