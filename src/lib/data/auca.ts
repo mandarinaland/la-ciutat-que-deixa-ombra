@@ -30,6 +30,8 @@ export type AucaHrefs = {
   journey: string;
   vignette: (n: number) => string;
   chapter: (slug: string) => string;
+  /** Portada d'una altra obra. */
+  work: (slug: string) => string;
 };
 
 export function hrefsFor(mode: AucaMode, workSlug: string): AucaHrefs {
@@ -40,6 +42,7 @@ export function hrefsFor(mode: AucaMode, workSlug: string): AucaHrefs {
       journey: `${base}#recorregut`,
       vignette: (n) => routes.admin.preview(workSlug, n),
       chapter: (slug) => routes.admin.preview(workSlug, slug),
+      work: (slug) => routes.admin.preview(slug),
     };
   }
   const home = workSlug === DEFAULT_WORK_SLUG ? routes.home() : routes.work(workSlug);
@@ -48,6 +51,7 @@ export function hrefsFor(mode: AucaMode, workSlug: string): AucaHrefs {
     journey: `${home}#recorregut`,
     vignette: (n) => routes.vignette(workSlug, n),
     chapter: (slug) => routes.chapter(workSlug, slug),
+    work: (slug) => (slug === DEFAULT_WORK_SLUG ? routes.home() : routes.work(slug)),
   };
 }
 
@@ -69,6 +73,17 @@ async function qWork(db: Client, slug: string, mode: AucaMode): Promise<WorkRow 
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
   return data;
+}
+
+type WorkCardRow = Pick<Tables<"works">, "slug" | "title" | "subtitle" | "cover_media_id" | "status" | "order_index">;
+
+/** Totes les obres visibles (per a «Altres obres»). */
+async function qWorks(db: Client, mode: AucaMode): Promise<WorkCardRow[]> {
+  let q = db.from("works").select("slug, title, subtitle, cover_media_id, status, order_index");
+  q = mode === "public" ? q.eq("status", "published") : q.neq("status", "archived");
+  const { data, error } = await q.order("order_index").order("created_at");
+  if (error) throw error;
+  return data ?? [];
 }
 
 async function qMedia(db: Client, id: string): Promise<MediaItem | null> {
@@ -131,6 +146,7 @@ async function qLinks(db: Client, vignetteId: string): Promise<MediaLink[]> {
 // Versions públiques cachejades (etiqueta `content`: qualsevol canvi a l'admin les invalida).
 const CACHE = { tags: [CONTENT_TAG], revalidate: 3600 };
 const pub = () => createPublicClient();
+const cWorks = unstable_cache(() => qWorks(pub(), "public"), ["auca-works-v1"], CACHE);
 const cWork = unstable_cache((slug: string) => qWork(pub(), slug, "public"), ["auca-work-v3"], CACHE);
 const cMedia = unstable_cache((id: string) => qMedia(pub(), id), ["auca-media-v1"], CACHE);
 const cChapters = unstable_cache((workId: string) => qChapters(pub(), workId, "public"), ["auca-chapters-v1"], CACHE);
@@ -141,6 +157,7 @@ const cLinks = unstable_cache((vignetteId: string) => qLinks(pub(), vignetteId),
 
 type Source = {
   work: (slug: string) => Promise<WorkRow | null>;
+  works: () => Promise<WorkCardRow[]>;
   media: (id: string) => Promise<MediaItem | null>;
   chapters: (workId: string) => Promise<ChapterRow[]>;
   index: (workId: string) => Promise<IndexRow[]>;
@@ -151,12 +168,13 @@ type Source = {
 
 async function sourceFor(mode: AucaMode): Promise<Source> {
   if (mode === "public") {
-    return { work: cWork, media: cMedia, chapters: cChapters, index: cIndex, mainImages: cMainImages, vignette: cVignette, links: cLinks };
+    return { work: cWork, works: cWorks, media: cMedia, chapters: cChapters, index: cIndex, mainImages: cMainImages, vignette: cVignette, links: cLinks };
   }
   const { createSupabaseServerClient } = await import("@/lib/supabase/server");
   const db = await createSupabaseServerClient();
   return {
     work: (slug) => qWork(db, slug, mode),
+    works: () => qWorks(db, mode),
     media: (id) => qMedia(db, id),
     chapters: (workId) => qChapters(db, workId, mode),
     index: (workId) => qIndex(db, workId, mode),
@@ -229,11 +247,15 @@ export type JourneySection = {
   items: JourneyItem[];
 };
 
+export type OtherWork = { slug: string; title: string; subtitle: string | null; cover: AucaImage | null; draft: boolean };
+
 export type Landing = {
   work: AucaWork;
   cover: AucaImage | null;
   /** Poema de la portada (àudio de fons). */
   poem: AucaFile | null;
+  /** Les altres obres publicades (enllaços al peu de la portada). */
+  others: OtherWork[];
   total: number;
   sections: JourneySection[];
 };
@@ -243,15 +265,18 @@ export async function loadLanding(mode: AucaMode, workSlug: string): Promise<Lan
   const work = await src.work(workSlug);
   if (!work) return null;
 
-  const [coverMedia, poemMedia, chapters, index, mainImages] = await Promise.all([
+  const [coverMedia, poemMedia, chapters, index, mainImages, allWorks] = await Promise.all([
     work.cover_media_id ? src.media(work.cover_media_id) : Promise.resolve(null),
     work.intro_audio_media_id ? src.media(work.intro_audio_media_id) : Promise.resolve(null),
     src.chapters(work.id),
     src.index(work.id),
     src.mainImages(work.id),
+    src.works(),
   ]);
+  const otherRows = allWorks.filter((w) => w.slug !== work.slug);
+  const otherCovers = await Promise.all(otherRows.map((w) => (w.cover_media_id ? src.media(w.cover_media_id) : Promise.resolve(null))));
 
-  const media = [coverMedia, poemMedia, ...index.map((v) => mainImages[v.id] ?? null)].filter((m): m is MediaItem => Boolean(m));
+  const media = [coverMedia, poemMedia, ...otherCovers, ...index.map((v) => mainImages[v.id] ?? null)].filter((m): m is MediaItem => Boolean(m));
   const sources = await resolveMediaSources(media, mode === "preview" ? "admin" : "public");
 
   const toItem = (v: IndexRow): JourneyItem => ({
@@ -290,6 +315,13 @@ export async function loadLanding(mode: AucaMode, workSlug: string): Promise<Lan
     work: rest,
     cover: toImage(coverMedia, sources, work.title),
     poem: toFile(poemMedia, sources),
+    others: otherRows.map((w, i) => ({
+      slug: w.slug,
+      title: w.title,
+      subtitle: w.subtitle,
+      cover: toImage(otherCovers[i] ?? null, sources, w.title),
+      draft: w.status !== "published",
+    })),
     total: index.length,
     sections,
   };

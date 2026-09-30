@@ -20,6 +20,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   base[0]!.lastModified = new Date(landing.work.updated_at);
   return [
     ...base,
+    ...landing.others.map((w) => ({
+      url: absoluteUrl(routes.work(w.slug)),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     ...(chapters?.chapters ?? []).map((c) => ({
       url: absoluteUrl(routes.chapter(DEFAULT_WORK_SLUG, c.chapter.slug)),
       changeFrequency: "monthly" as const,

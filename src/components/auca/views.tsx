@@ -6,6 +6,7 @@ import { formatVignetteNumber } from "@/lib/routing";
 import { Cover } from "./Cover";
 import { IntroPoem } from "./IntroPoem";
 import { Journey } from "./Journey";
+import { OtherWorks } from "./OtherWorks";
 import { Reader } from "./Reader";
 
 /** Portada + recorregut complet. */
@@ -23,6 +24,7 @@ export function LandingView({ landing, hrefs }: { landing: Landing; hrefs: AucaH
       ) : (
         <span id="contingut" />
       )}
+      <OtherWorks works={landing.others} hrefs={hrefs} />
       <Colophon work={landing.work} />
       {landing.poem ? <IntroPoem poem={landing.poem} /> : null}
     </>
