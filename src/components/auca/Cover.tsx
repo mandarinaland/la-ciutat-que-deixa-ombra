@@ -37,25 +37,31 @@ export function Cover({ landing, hrefs }: { landing: Landing; hrefs: AucaHrefs }
         <p className="font-mono text-[11px] uppercase tracking-[var(--tracking-title)] text-smoke">
           Auca{total > 0 ? ` · ${total} vinyetes` : ""}
         </p>
-        <h1 className="max-w-4xl text-[2.2rem] leading-[0.95] uppercase tracking-[0.08em] text-balance sm:text-6xl lg:text-7xl">
-          {work.title}
-        </h1>
-
-        {/* El títol queda com sempre; l'aforisme ocupa l'espai buit de la dreta, sota el títol (pantalles grans). */}
+        {/*
+          El títol queda com sempre. L'aforisme (Admin → Obra) se situa a la dreta del títol,
+          des de la segona línia fins a l'alçada del subtítol (pantalles grans).
+          Al mòbil va en línia, després de la presentació i abans dels botons.
+        */}
         <div className="relative grid gap-8">
+          <h1 className="max-w-4xl text-[2.2rem] leading-[0.95] uppercase tracking-[0.08em] text-balance sm:text-6xl lg:text-7xl">
+            {work.title}
+          </h1>
           {work.subtitle ? (
-            <p className={`text-xl italic text-paper/80 sm:text-2xl ${quote ? "lg:pr-[25rem]" : ""}`}>{work.subtitle}</p>
+            <p className={`text-xl italic text-paper/80 sm:text-2xl ${quote ? "lg:pr-[20rem]" : ""}`}>{work.subtitle}</p>
           ) : null}
           {work.intro_text ? (
             <p
-              className={`max-w-2xl whitespace-pre-line text-lg leading-relaxed text-paper/85 sm:text-xl ${quote ? "lg:max-w-[calc(100%-25rem)]" : ""}`}
+              className={`max-w-2xl whitespace-pre-line text-lg leading-relaxed text-paper/85 sm:text-xl ${quote ? "lg:max-w-[calc(100%-20rem)]" : ""}`}
             >
               {work.intro_text}
             </p>
           ) : null}
 
           {quote ? (
-            <blockquote className="grid gap-3 border-l border-paper/30 pl-6 lg:absolute lg:right-0 lg:top-1 lg:w-[22rem] xl:w-[24rem]">
+            <blockquote
+              data-hero-quote
+              className="grid gap-3 border-l border-paper/30 pl-6 lg:absolute lg:right-0 lg:top-[4.3rem] lg:w-[18rem] xl:-right-16 2xl:-right-[4.5rem]"
+            >
               {quote.heading ? <p className="text-xl italic leading-snug text-paper">{quote.heading}</p> : null}
               {quote.body ? (
                 <p className="whitespace-pre-line text-justify text-lg leading-relaxed text-paper/85 hyphens-auto">{quote.body}</p>
