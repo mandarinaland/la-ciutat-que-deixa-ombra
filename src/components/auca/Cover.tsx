@@ -33,7 +33,7 @@ export function Cover({ landing, hrefs }: { landing: Landing; hrefs: AucaHrefs }
         </div>
       ) : null}
 
-      <div className="relative mx-auto grid w-full max-w-6xl gap-8 px-6 pb-16 pt-32 sm:px-10 sm:pb-20">
+      <div className="relative mx-auto grid w-full max-w-6xl gap-8 px-6 pb-16 pt-32 sm:px-10 sm:pb-20 lg:pb-[7.5rem]">
         <p className="font-mono text-[11px] uppercase tracking-[var(--tracking-title)] text-smoke">
           Auca{total > 0 ? ` · ${total} vinyetes` : ""}
         </p>
